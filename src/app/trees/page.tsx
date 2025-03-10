@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getAllTrees } from '@/lib/treeService';
 import { Tree } from '@/types/tree';
 
@@ -48,11 +49,13 @@ export default function TreesPage() {
               <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow h-full overflow-hidden">
                 <div className="h-48 bg-green-100 relative">
                   {tree.image ? (
-                    <img 
-                      src={tree.image} 
-                      alt={tree.name} 
-                      className="w-full h-full object-cover"
-                    />
+                  <Image 
+                  src={tree.image} 
+                  alt={tree.name} 
+                  width={500} 
+                  height={300} 
+                  className="w-full h-full object-cover" 
+                />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-6xl">🌳</span>

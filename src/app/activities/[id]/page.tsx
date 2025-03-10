@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import ActivityForm from '@/components/activities/ActivityForm';
 import { Activity } from '@/types/activity';
 import { getAllActivities } from '@/lib/activityService';
@@ -66,11 +67,13 @@ export default function ActivitiesPage() {
               <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow h-full">
                 <div className="h-48 bg-green-100 relative">
                   {activity.image ? (
-                    <img 
-                      src={activity.image} 
-                      alt={activity.name} 
-                      className="w-full h-full object-cover"
-                    />
+                   <Image 
+                   src={img} 
+                   alt={`תמונה ${index + 1}`} 
+                   width={100} 
+                   height={100} 
+                   className="w-full h-full object-cover" 
+                 />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-6xl">🌳</span>

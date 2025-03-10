@@ -285,11 +285,13 @@ const DocumentationForm: React.FC<DocumentationFormProps> = ({
               {capturedImages.map((img, index) => (
                 <div key={index} className="relative group">
                   <div className="h-24 bg-gray-100 rounded overflow-hidden relative">
-                    <img 
-                      src={img} 
-                      alt={`תמונה ${index + 1}`} 
-                      className="w-full h-full object-cover"
-                    />
+                  <Image 
+  src={img} 
+  alt={`תמונה ${index + 1}`} 
+  width={100} 
+  height={100} 
+  className="w-full h-full object-cover"
+/>
                   </div>
                   <button
                     type="button"
@@ -312,17 +314,13 @@ const DocumentationForm: React.FC<DocumentationFormProps> = ({
               {formData.images?.map((img, index) => (
                 <div key={index} className="relative group">
                   <div className="h-24 bg-gray-100 rounded overflow-hidden relative">
-                    <img 
-                      src={img} 
-                      alt={`תמונה ${index + 1}`} 
-                      className="w-full h-full object-cover" 
-                      onError={(e) => {
-                        // אם התמונה לא נטענת, הצג אייקון תמונה במקומה
-                        const target = e.target as HTMLImageElement;
-                        target.onerror = null;
-                        target.parentElement!.innerHTML = '<div class="flex items-center justify-center h-full w-full">🖼️</div>';
-                      }}
-                    />
+                  <Image 
+  src={img} 
+  alt={`תמונה מקישור ${index + 1}`} 
+  width={100} 
+  height={100} 
+  className="w-full h-full object-cover"
+/> 
                   </div>
                   <button
                     type="button"
