@@ -1,4 +1,4 @@
-// src/lib/services/activityService.ts
+// src/lib/activityService.ts
 import { 
     collection, 
     getDocs, 

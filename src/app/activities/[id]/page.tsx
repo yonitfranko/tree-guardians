@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ActivityForm from '@/components/activities/ActivityForm';
 import { Activity } from '@/types/activity';
-import { getAllActivities } from '@/lib/services/activityService';
+import { getAllActivities } from '@/lib/activityService';
 
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
