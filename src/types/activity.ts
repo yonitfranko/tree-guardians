@@ -15,6 +15,7 @@ export interface Activity {
     link: string;
     subjects: string[];
     skillIds: string[];
+    treeIds: string[]; // הוסף את זה!
     createdAt?: Date;
     updatedAt?: Date;
   }
