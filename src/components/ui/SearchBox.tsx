@@ -30,17 +30,18 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     if (!term || term.length < 2) return [];
     
     // תוצאות לצורך הדגמה בלבד
+    // וודא שהערכים של type הם בדיוק "activity", "tree", או "skill"
     return [
-      { id: '1', type: 'activity', name: 'זיהוי עלים', category: 'מדעים', link: '/activities/act1' },
-      { id: '2', type: 'activity', name: 'חישוב גובה העץ', category: 'מתמטיקה', link: '/activities/act2' },
-      { id: '3', type: 'tree', name: 'עץ אלון', link: '/trees/oak' },
-      { id: '4', type: 'tree', name: 'עץ אורן', link: '/trees/pine' },
-      { id: '5', type: 'skill', name: 'תצפית', category: 'מדעים', link: '/skills#observation' }
-    ].filter(item => 
-      item.name.includes(term) || 
-      (item.category && item.category.includes(term))
-    );
-  };
+        { id: '1', type: 'activity' as const, name: 'זיהוי עלים', category: 'מדעים', link: '/activities/act1' },
+        { id: '2', type: 'activity' as const, name: 'חישוב גובה העץ', category: 'מתמטיקה', link: '/activities/act2' },
+        { id: '3', type: 'tree' as const, name: 'עץ אלון', link: '/trees/oak' },
+        { id: '4', type: 'tree' as const, name: 'עץ אורן', link: '/trees/pine' },
+        { id: '5', type: 'skill' as const, name: 'תצפית', category: 'מדעים', link: '/skills#observation' }
+      ].filter(item => 
+        item.name.includes(term) || 
+        (item.category && item.category.includes(term))
+      );
+    };
   
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
