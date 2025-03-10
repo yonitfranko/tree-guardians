@@ -4,6 +4,7 @@ export interface Activity {
     materials: string;
     description: string;
     summary: string;
+    preparation: string;
     image: string;
     participants: string;
     category: string;
