@@ -66,15 +66,15 @@ export default function ActivitiesPage() {
             <Link key={activity.id} href={`/activities/${activity.id}`}>
               <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow h-full">
                 <div className="h-48 bg-green-100 relative">
-                  {activity.image ? (
-                   <Image 
-                   src={img} 
-                   alt={`תמונה ${index + 1}`} 
-                   width={100} 
-                   height={100} 
-                   className="w-full h-full object-cover" 
-                 />
-                  ) : (
+                {activity.image ? (
+  <Image 
+    src={activity.image}  // שימוש במשתנה הנכון
+    alt={activity.name || "תמונת פעילות"} 
+    width={100} 
+    height={100} 
+    className="w-full h-full object-cover" 
+  />
+) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-6xl">🌳</span>
                     </div>
