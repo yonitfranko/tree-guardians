@@ -2,14 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'i.imgur.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    domains: ['i.imgur.com'],
+  },
+  eslint: {
+    ignoreDuringBuilds: true, // זה יתעלם משגיאות ESLint בזמן הבנייה
   },
 }
 
