@@ -10,6 +10,7 @@ interface Resources {
   studentResources: Resource[];
   worksheets: Resource[];
   media: Resource[];
+  relatedActivities: Resource[];
 }
 
 export interface Activity {
