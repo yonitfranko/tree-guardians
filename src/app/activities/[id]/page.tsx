@@ -26,27 +26,26 @@ interface Documentation {
 interface Activity {
   id: string;
   name: string;
-  subject?: string;
-  treeType?: string;
-  gradeLevel?: string;
-  duration?: string;
-  skills?: string[];
-  description?: string;
-  materials?: string[] | string;
-  steps?: string[];
-  expectedOutcomes?: string[];
-  tags?: string[];
-  resources?: {
-    teacherResources?: Resource[];
-    worksheets?: Resource[];
-    media?: Resource[];
-    relatedActivities?: Resource[];
-  };
-  documentations?: Documentation[];
+  subject: string;
+  treeType: string;
+  gradeLevel: string;
+  duration: string;
+  skills: string[];
+  description: string;
+  materials: string[];
+  steps: string[];
+  expectedOutcomes: string[];
+  tags: string[];
+  resources: any;
+  documentations: any[];
+}
+
+interface ActivitiesData {
+  [key: string]: Activity;
 }
 
 // הנתונים הקבועים לבדיקה
-const activitiesData = {
+const activitiesData: ActivitiesData = {
   'olive-math': {
     id: 'olive-math',
     name: 'גילוי היקף העץ ועולם הזיתים',
@@ -139,8 +138,7 @@ export default function ActivityPage() {
     const id = Array.isArray(activityId) ? activityId[0] : activityId;
     
     if (id && activitiesData) {
-      // נבצע type assertion כדי להגיד לטייפסקריפט שאנחנו יודעים שהמפתח תקין
-      const activityData = activitiesData[id as ActivityId];
+      const activityData = activitiesData[id];
       if (activityData) {
         setActivity(activityData);
       } else {
