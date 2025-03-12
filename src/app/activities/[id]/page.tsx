@@ -142,7 +142,7 @@ const activitiesData: ActivitiesData = {
     assessment: '',
     extensions: [],
     safety: [],
-    adaptations: '',
+    adaptations: [],
     background: '',
     standards: [],
     notes: ''
