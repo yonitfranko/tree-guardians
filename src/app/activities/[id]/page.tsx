@@ -33,25 +33,21 @@ const activitiesData: ActivitiesData = {
     id: 'olive-math',
     name: 'גילוי היקף העץ ועולם הזיתים',
     subjects: ['מתמטיקה'],
-    treeIds: ['olive'],
-    ageGroup: 'א\'-ג\'',
-    skillIds: [
-      'self-management',
-      'problem-solving',
-      'learning-ability'
-    ],
-    description: 'פעילות חקר מתמטית המשלבת מדידת היקף עצי זית, יצירת גרף השוואתי וחישובי כמויות של פירות על העץ.',
-    materials: 'סרט מידה, דפי רישום מובנים, כלי כתיבה וצבעים',
-    preparation: `1. מדידת היקף עצי זית באמצעות סרט מדידה ורישום התוצאות
-2. השוואת מדידות - כמה ילדים צריך כדי "להקיף" עץ אחד
-3. יצירת גרף עמודות של העצים לפי עובי הגזע
-4. חישוב כמות הפירות על העץ לפי היקף הגזע
-5. סיכום והסקת מסקנות`,
+    treeIds: [],
+    ageGroup: 'ד-ו',
+    skillIds: [],
+    description: 'פעילות חקר מתמטית סביב עץ הזית',
+    materials: 'סרט מדידה, דף נייר, עיפרון',
+    preparation: 'להכין את דפי העבודה מראש',
     expectedOutcomes: [
-      'גרף עמודות השוואתי',
-      'טבלת מדידות היקפים',
-      'חישובי כמויות זיתים'
+      'התלמידים ילמדו למדוד היקף של עץ',
+      'התלמידים יבינו את הקשר בין היקף לקוטר'
     ],
+    steps: ['מדידת היקף העץ', 'חישוב הקוטר', 'השוואה בין עצים שונים'],
+    duration: '45 דקות',
+    treeType: 'זית',
+    gradeLevel: 'כיתה ה',
+    skills: ['מדידה', 'חישוב', 'עבודת צוות'],
     tags: ['פעילות חוץ', 'עבודת צוות', 'מדידה', 'חישובים', 'חקר'],
     resources: {
       teacherResources: [
@@ -100,14 +96,14 @@ const activitiesData: ActivitiesData = {
         ]
       }
     ],
-    summary: '',
-    image: '',
-    participants: '',
-    objectives: [],
-    location: '',
-    assessment: '',
-    extensions: [],
-    safety: [],
+    summary: 'פעילות חקר מתמטית המשלבת מדידות והיכרות עם עץ הזית',
+    image: '/images/olive-tree.jpg',
+    participants: '20-30 תלמידים',
+    objectives: ['הבנת מושג ההיקף', 'פיתוח מיומנויות מדידה', 'היכרות עם עץ הזית'],
+    location: 'חצר בית הספר',
+    assessment: 'הערכת דפי העבודה ותצפית על עבודת התלמידים',
+    extensions: ['חישוב נפח גזע העץ', 'מעקב אחר גדילת העץ לאורך זמן'],
+    safety: ['להיזהר מענפים נמוכים', 'לשמור על מרחק בטוח בין התלמידים'],
     adaptations: [],
     background: '',
     standards: [],
@@ -119,9 +115,7 @@ const activitiesData: ActivitiesData = {
     difficulty: '',
     season: '',
     equipment: [],
-    link: '',
-    skillIds: [],
-    treeIds: []
+    link: '/activities/olive-math'
   }
 };
 
