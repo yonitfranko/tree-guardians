@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getActivityById, updateActivity } from '@/lib/activityService';
-import { Activity as ActivityType } from '@/types/activity';
+import { Activity } from '@/types/activity';
 import ActivityForm from '@/components/activities/ActivityForm';
 import Link from 'next/link';
 
@@ -21,48 +21,6 @@ interface Documentation {
   description: string;
   date: string;
   images?: string[];
-}
-
-interface Activity {
-  id: string;
-  name: string;
-  subject: string;
-  treeType: string;
-  gradeLevel: string;
-  duration: string;
-  skills: string[];
-  description: string;
-  materials: string[];
-  steps: string[];
-  expectedOutcomes: string[];
-  tags: string[];
-  resources: any;
-  documentations: any[];
-  summary: string;
-  preparation: string;
-  image: string;
-  participants: string;
-  objectives: string[];
-  location: string;
-  assessment: string;
-  extensions: string[];
-  safety: string[];
-  adaptations: string[];
-  background: string;
-  standards: string[];
-  notes: string;
-  category: string;
-  favorite: boolean;
-  ageGroup: string;
-  audio: string;
-  video: string;
-  difficulty: string;
-  season: string;
-  equipment: string[];
-  link: string;
-  subjects: string[];
-  skillIds: string[];
-  treeIds: string[];
 }
 
 interface ActivitiesData {
@@ -179,7 +137,7 @@ type ActivityId = 'olive-math' | 'pine-science' | 'oak-history' | string; // ◊ê◊
 export default function ActivityPage() {
   const params = useParams();
   const router = useRouter();
-  const [activity, setActivity] = useState<ActivityType | null>(null);
+  const [activity, setActivity] = useState<Activity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -197,7 +155,7 @@ export default function ActivityPage() {
     }
   }, [params, activitiesData]);
 
-  const handleUpdateActivity = async (updatedData: Partial<ActivityType>) => {
+  const handleUpdateActivity = async (updatedData: Partial<Activity>) => {
     try {
       if (!activity?.id) return;
       await updateActivity(activity.id, updatedData);
