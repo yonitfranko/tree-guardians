@@ -1,21 +1,32 @@
 export interface Activity {
-    id?: string;
+    id: string;
     name: string;
-    materials: string;
+    subjects: string[];
+    treeIds: string[];
+    ageGroup: string;
+    skillIds: string[];
     description: string;
-    summary: string;
+    materials: string;
+    steps: string[];
+    expectedOutcomes: string[];
     preparation: string;
+    objectives: string[];
+    duration: string;
+    treeType: string;
+    gradeLevel: string;
+    skills: string[];
+    tags: string[];
+    link: string;
     image: string;
-    participants: string;
     category: string;
     favorite: boolean;
-    ageGroup: string;
-    notes: string;
     audio: string;
-    link: string;
-    subjects: string[];
-    skillIds: string[];
-    treeIds: string[]; // הוסף את זה!
-    createdAt?: Date;
-    updatedAt?: Date;
-  }
+    video: string;
+    difficulty: string;
+    season: string;
+    equipment: string[];
+    background: string;
+    standards: string[];
+    notes: string;
+    documentations: any[];
+}
