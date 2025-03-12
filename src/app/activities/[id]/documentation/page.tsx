@@ -2,12 +2,46 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getFirestore } from 'firebase/firestore';
+
+// הגדרת הטיפוס למסמך
+interface Documentation {
+  id: string;
+  title: string;
+  content: string;
+  // הוסף שדות נוספים לפי הצורך
+}
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAkmwVEbhnh7UlbzGlClNohQk9ArmOs4D8",
+  authDomain: "tree-guardians-ed3ac.firebaseapp.com",
+  projectId: "tree-guardians-ed3ac",
+  storageBucket: "tree-guardians-ed3ac.firebasestorage.app",
+  messagingSenderId: "113633081266",
+  appId: "1:113633081266:web:b5571575ccc240ce8b56ab",
+  measurementId: "G-ELLT4TXQJV"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Initialize Analytics only on client side
+let analytics = null;
+if (typeof window !== 'undefined') {
+  analytics = getAnalytics(app);
+}
+
+export { app, analytics, db };
 
 export default function DocumentationList() {
   const params = useParams();
 
   // כאן יבוא הקוד לטעינת התיעודים מ-Firebase
-  const documentations = [
+  const documentations: Documentation[] = [
     // דוגמה לנתונים
   ];
 

@@ -26,16 +26,16 @@ interface Documentation {
 interface Activity {
   id: string;
   name: string;
-  subject: string;
-  treeType: string;
-  gradeLevel: string;
-  duration: string;
-  skills: string[];
-  description: string;
-  materials: string[];
-  steps: string[];
-  expectedOutcomes: string[];
-  tags: string[];
+  subject?: string;
+  treeType?: string;
+  gradeLevel?: string;
+  duration?: string;
+  skills?: string[];
+  description?: string;
+  materials?: string[] | string;
+  steps?: string[];
+  expectedOutcomes?: string[];
+  tags?: string[];
   resources?: {
     teacherResources?: Resource[];
     worksheets?: Resource[];
@@ -45,8 +45,8 @@ interface Activity {
   documentations?: Documentation[];
 }
 
-// מאגר זמני של פעילויות (בהמשך יעבור ל-Firebase)
-const activitiesData: { [key: string]: Activity } = {
+// הנתונים הקבועים לבדיקה
+const activitiesData = {
   'olive-math': {
     id: 'olive-math',
     name: 'גילוי היקף העץ ועולם הזיתים',
@@ -121,8 +121,7 @@ const activitiesData: { [key: string]: Activity } = {
         ]
       }
     ]
-  },
-  // כאן אפשר להוסיף עוד פעילויות...
+  }
 };
 
 export default function ActivityPage() {
@@ -130,9 +129,10 @@ export default function ActivityPage() {
   const router = useRouter();
   const [activity, setActivity] = useState<Activity | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const activityId = params?.id as string;
+    const activityId = params?.id;
     const activityData = activitiesData[activityId];
     
     if (activityData) {
@@ -186,9 +186,9 @@ export default function ActivityPage() {
             <div>
               <h1 className="text-3xl font-bold text-green-800 mb-2">{activity.name}</h1>
               <div className="flex gap-4 text-sm">
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">{activity.subject}</span>
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{activity.gradeLevel}</span>
-                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">{activity.duration}</span>
+                {activity.subject && <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">{activity.subject}</span>}
+                {activity.gradeLevel && <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{activity.gradeLevel}</span>}
+                {activity.duration && <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">{activity.duration}</span>}
               </div>
             </div>
             {/* כפתורי פעולה */}
@@ -204,78 +204,92 @@ export default function ActivityPage() {
               </Link>
             </div>
           </div>
-          <p className="text-gray-600 text-lg mb-6">{activity.description}</p>
+          {activity.description && <p className="text-gray-600 text-lg mb-6">{activity.description}</p>}
           
           {/* תגיות */}
-          <div className="flex flex-wrap gap-2">
-            {activity.tags.map(tag => (
-              <span key={tag} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
-                {tag}
-              </span>
-            ))}
-          </div>
+          {activity.tags && activity.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {activity.tags.map(tag => (
+                <span key={tag} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* מידע על הפעילות */}
           <div className="space-y-8">
             {/* מיומנויות */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-green-800 mb-4">מיומנויות נרכשות</h2>
-              <ul className="space-y-2">
-                {activity.skills.map(skill => (
-                  <li key={skill} className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {skill}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {activity.skills && activity.skills.length > 0 && (
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-bold text-green-800 mb-4">מיומנויות נרכשות</h2>
+                <ul className="space-y-2">
+                  {activity.skills.map(skill => (
+                    <li key={skill} className="flex items-center gap-2">
+                      <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {skill}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* חומרים */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-green-800 mb-4">חומרים נדרשים</h2>
-              <ul className="list-disc list-inside space-y-2 text-gray-600">
-                {activity.materials.map(material => (
-                  <li key={material}>{material}</li>
-                ))}
-              </ul>
-            </div>
+            {activity.materials && (
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-bold text-green-800 mb-4">חומרים נדרשים</h2>
+                <ul className="list-disc list-inside space-y-2 text-gray-600">
+                  {Array.isArray(activity.materials) ? (
+                    activity.materials.map(material => (
+                      <li key={material}>{material}</li>
+                    ))
+                  ) : (
+                    <li>{activity.materials}</li>
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* מהלך ותוצרים */}
           <div className="space-y-8">
             {/* שלבי הפעילות */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-green-800 mb-4">מהלך הפעילות</h2>
-              <ol className="space-y-4">
-                {activity.steps.map((step, index) => (
-                  <li key={index} className="flex gap-4">
-                    <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-800 rounded-full flex items-center justify-center">
-                      {index + 1}
-                    </span>
-                    <span className="text-gray-600">{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
+            {activity.steps && activity.steps.length > 0 && (
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-bold text-green-800 mb-4">מהלך הפעילות</h2>
+                <ol className="space-y-4">
+                  {activity.steps.map((step, index) => (
+                    <li key={index} className="flex gap-4">
+                      <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-800 rounded-full flex items-center justify-center">
+                        {index + 1}
+                      </span>
+                      <span className="text-gray-600">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
 
             {/* תוצרים מצופים */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-green-800 mb-4">תוצרים מצופים</h2>
-              <ul className="space-y-2">
-                {activity.expectedOutcomes.map(outcome => (
-                  <li key={outcome} className="flex items-center gap-2 text-gray-600">
-                    <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                    {outcome}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {activity.expectedOutcomes && activity.expectedOutcomes.length > 0 && (
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-bold text-green-800 mb-4">תוצרים מצופים</h2>
+                <ul className="space-y-2">
+                  {activity.expectedOutcomes.map(outcome => (
+                    <li key={outcome} className="flex items-center gap-2 text-gray-600">
+                      <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      {outcome}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
