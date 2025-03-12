@@ -42,12 +42,11 @@ const activitiesData: ActivitiesData = {
     ],
     description: 'פעילות חקר מתמטית המשלבת מדידת היקף עצי זית, יצירת גרף השוואתי וחישובי כמויות של פירות על העץ.',
     materials: 'סרט מידה, דפי רישום מובנים, כלי כתיבה וצבעים',
-    steps: [
-      'מדידת היקף עצי זית באמצעות סרט מדידה ורישום התוצאות',
-      'השוואת מדידות - כמה ילדים צריך כדי "להקיף" עץ אחד',
-      'יצירת גרף עמודות של העצים לפי עובי הגזע',
-      'חישוב כמות הזיתים בעץ על בסיס מדגם מענף אחד'
-    ],
+    preparation: `1. מדידת היקף עצי זית באמצעות סרט מדידה ורישום התוצאות
+2. השוואת מדידות - כמה ילדים צריך כדי "להקיף" עץ אחד
+3. יצירת גרף עמודות של העצים לפי עובי הגזע
+4. חישוב כמות הפירות על העץ לפי היקף הגזע
+5. סיכום והסקת מסקנות`,
     expectedOutcomes: [
       'גרף עמודות השוואתי',
       'טבלת מדידות היקפים',
@@ -98,7 +97,6 @@ const activitiesData: ActivitiesData = {
       }
     ],
     summary: '',
-    preparation: '',
     image: '',
     participants: '',
     objectives: [],
@@ -264,19 +262,10 @@ export default function ActivityPage() {
           {/* מהלך ותוצרים */}
           <div className="space-y-8">
             {/* שלבי הפעילות */}
-            {activity.steps && activity.steps.length > 0 && (
+            {activity.preparation && (
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h2 className="text-xl font-bold text-green-800 mb-4">מהלך הפעילות</h2>
-                <ol className="space-y-4">
-                  {activity.steps.map((step, index) => (
-                    <li key={index} className="flex gap-4">
-                      <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-800 rounded-full flex items-center justify-center">
-                        {index + 1}
-                      </span>
-                      <span className="text-gray-600">{step}</span>
-                    </li>
-                  ))}
-                </ol>
+                <p className="text-gray-600">{activity.preparation}</p>
               </div>
             )}
 
