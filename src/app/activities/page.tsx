@@ -126,109 +126,23 @@ interface FirebaseActivity {
   preparation: string;
 }
 
-export default function Home() {
-  const [activities, setActivities] = useState<FirebaseActivity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  
-  useEffect(() => {
-    async function fetchActivities() {
-      try {
-        const activitiesCollection = collection(db, 'activities');
-        const activitiesSnapshot = await getDocs(activitiesCollection);
-        const activitiesList = activitiesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as FirebaseActivity[];
-        
-        setActivities(activitiesList);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching activities:', err);
-        setError('אירעה שגיאה בטעינת הפעילויות');
-        setLoading(false);
-      }
-    }
-
-    fetchActivities();
-  }, []);
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">טוען פעילויות...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center text-red-600">
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
-
+export default async function ActivitiesPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-green-800 mb-8">פעילויות</h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {activities.map((activity) => (
-            <div key={activity.id} className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="p-6">
-                <h2 className="text-xl font-bold text-green-800 mb-4">{activity.name}</h2>
-                
-                {/* תגיות נושאים - עם בדיקת קיום */}
-                {activity.subjects && activity.subjects.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {activity.subjects.map((subject, index) => (
-                      <span 
-                        key={index}
-                        className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm"
-                      >
-                        {subject}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* תקציר - עם בדיקת קיום */}
-                {activity.summary && (
-                  <p className="text-gray-600 mb-4 line-clamp-3">{activity.summary}</p>
-                )}
-
-                {/* מידע נוסף - עם בדיקת קיום */}
-                <div className="text-sm text-gray-500">
-                  {activity.participants && <p>משתתפים: {activity.participants}</p>}
-                  {activity.preparation && <p>הכנה: {activity.preparation}</p>}
-                </div>
-              </div>
-
-              {/* כפתורי פעולה */}
-              <div className="bg-gray-50 px-6 py-3 flex justify-between items-center">
-                <Link 
-                  href={`/activities/${activity.id}`}
-                  className="text-green-600 hover:text-green-700 font-medium"
-                >
-                  פרטים נוספים
-                </Link>
-                <Link 
-                  href={`/activities/${activity.id}/documentation/new`}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
-                  תיעוד פעילות
-                </Link>
-              </div>
-            </div>
-          ))}
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">פעילויות</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* כאן יבואו כרטיסי הפעילויות */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="text-xl font-semibold">גילוי היקף העץ ועולם הזיתים</h2>
+          <p className="text-gray-600 mt-2">פעילות חקר מתמטית סביב עץ הזית</p>
+          <div className="mt-2">
+            <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-sm mr-2">
+              מתמטיקה
+            </span>
+            <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+              כיתה ה
+            </span>
+          </div>
         </div>
       </div>
     </div>
