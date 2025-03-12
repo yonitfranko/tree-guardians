@@ -7,6 +7,9 @@ import Image from 'next/image';
 import ActivityForm from '@/components/activities/ActivityForm';
 import { Activity } from '@/types/activity';
 import { getAllActivities } from '@/lib/activityService';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Activity as FirebaseActivity } from '@/lib/types';
 
 const subjects = [
   {
@@ -114,70 +117,103 @@ const trees: Tree[] = [
 ];
 
 export default function Home() {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [activities, setActivities] = useState<FirebaseActivity[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   
   useEffect(() => {
-    const fetchActivities = async () => {
+    async function fetchActivities() {
       try {
-        setLoading(true);
-        const data = await getAllActivities();
-        setActivities(data);
+        const activitiesCollection = collection(db, 'activities');
+        const activitiesSnapshot = await getDocs(activitiesCollection);
+        const activitiesList = activitiesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as FirebaseActivity[];
+        
+        setActivities(activitiesList);
+        setLoading(false);
       } catch (err) {
-        console.error("Error loading activities:", err);
-        setError("שגיאה בטעינת פעילויות. נסה שוב מאוחר יותר.");
-      } finally {
+        console.error('Error fetching activities:', err);
+        setError('אירעה שגיאה בטעינת הפעילויות');
         setLoading(false);
       }
-    };
-    
+    }
+
     fetchActivities();
   }, []);
   
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex justify-end">
-          <Link
-            href="/activities/new"
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-md flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            הוספת פעילות חדשה
-          </Link>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">טוען פעילויות...</p>
         </div>
+      </div>
+    );
+  }
 
-        <h1 className="text-4xl font-bold text-green-800 mb-2 text-center">העצים המגינים</h1>
-        <p className="text-xl text-gray-600 text-center mb-12">
-          גלו את העצים המיוחדים בבית ספרנו והפעילויות הפדגוגיות הקשורות אליהם
-        </p>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {trees.map((tree) => (
-            <Link 
-              key={tree.id} 
-              href={`/trees/${tree.id}`}
-              className="block group"
-            >
-              <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform duration-300 hover:-translate-y-2">
-                <div className="relative h-48">
-                  <Image
-                    src={tree.image}
-                    alt={tree.name}
-                    fill
-                    className="object-cover"
-                  />
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-3xl font-bold text-green-800 mb-8">פעילויות</h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {activities.map((activity) => (
+            <div key={activity.id} className="bg-white rounded-xl shadow-md overflow-hidden">
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-green-800 mb-4">{activity.name}</h2>
+                
+                {/* תגיות נושאים */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {activity.subjects.map((subject, index) => (
+                    <span 
+                      key={index}
+                      className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm"
+                    >
+                      {subject}
+                    </span>
+                  ))}
                 </div>
-                <div className="p-6">
-                  <h2 className="text-2xl font-bold text-green-800 mb-2">{tree.name}</h2>
-                  <p className="text-gray-600">{tree.description}</p>
+
+                {/* תקציר */}
+                <p className="text-gray-600 mb-4 line-clamp-3">{activity.summary}</p>
+
+                {/* מידע נוסף */}
+                <div className="text-sm text-gray-500">
+                  <p>משתתפים: {activity.participants}</p>
+                  <p>הכנה: {activity.preparation}</p>
                 </div>
               </div>
-            </Link>
+
+              {/* כפתורי פעולה */}
+              <div className="bg-gray-50 px-6 py-3 flex justify-between items-center">
+                <button 
+                  onClick={() => window.location.href = `/activities/${activity.id}`}
+                  className="text-green-600 hover:text-green-700 font-medium"
+                >
+                  פרטים נוספים
+                </button>
+                <button 
+                  onClick={() => window.location.href = `/activities/${activity.id}/documentation/new`}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                >
+                  תיעוד פעילות
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </div>

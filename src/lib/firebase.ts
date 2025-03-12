@@ -6,13 +6,13 @@ import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAkmwVEbhnh7UlbzGlClNohQk9ArmOs4D8",
-  authDomain: "tree-guardians-ed3ac.firebaseapp.com",
-  projectId: "tree-guardians-ed3ac",
-  storageBucket: "tree-guardians-ed3ac.firebasestorage.app",
-  messagingSenderId: "113633081266",
-  appId: "1:113633081266:web:b5571575ccc240ce8b56ab",
-  measurementId: "G-ELLT4TXQJV"
+  // הכנס כאן את פרטי הקונפיגורציה שלך מ-Firebase Console
+  apiKey: "your-api-key",
+  authDomain: "your-auth-domain",
+  projectId: "your-project-id",
+  storageBucket: "your-storage-bucket",
+  messagingSenderId: "your-messaging-sender-id",
+  appId: "your-app-id"
 };
 
 // אתחול Firebase רק פעם אחת בסביבת דפדפן
