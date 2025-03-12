@@ -1,3 +1,15 @@
+interface Resource {
+  type: string;
+  title: string;
+  url: string;
+  description: string;
+}
+
+interface Resources {
+  teacherResources: Resource[];
+  studentResources: Resource[];
+}
+
 export interface Activity {
     id: string;
     name: string;
@@ -29,4 +41,5 @@ export interface Activity {
     standards: string[];
     notes: string;
     documentations: any[];
+    resources: Resources;
 }
