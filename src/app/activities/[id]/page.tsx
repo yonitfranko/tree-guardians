@@ -35,10 +35,10 @@ const activitiesData: ActivitiesData = {
     subjects: ['מתמטיקה'],
     treeIds: ['olive'],
     ageGroup: 'א\'-ג\'',
-    skills: [
-      'הכוונה וניהול עצמי',
-      'פתרון בעיות',
-      'יכולת למידה'
+    skillIds: [
+      'self-management',
+      'problem-solving',
+      'learning-ability'
     ],
     description: 'פעילות חקר מתמטית המשלבת מדידת היקף עצי זית, יצירת גרף השוואתי וחישובי כמויות של פירות על העץ.',
     materials: 'סרט מידה, דפי רישום מובנים, כלי כתיבה וצבעים',
@@ -228,11 +228,11 @@ export default function ActivityPage() {
           {/* מידע על הפעילות */}
           <div className="space-y-8">
             {/* מיומנויות */}
-            {activity.skills && activity.skills.length > 0 && (
+            {activity.skillIds && activity.skillIds.length > 0 && (
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h2 className="text-xl font-bold text-green-800 mb-4">מיומנויות נרכשות</h2>
                 <ul className="space-y-2">
-                  {activity.skills.map(skill => (
+                  {activity.skillIds.map(skill => (
                     <li key={skill} className="flex items-center gap-2">
                       <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
