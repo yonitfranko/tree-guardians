@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from 'firebase/firestore';
+import React from 'react';
 
 // הגדרת הטיפוס למסמך
 interface Documentation {
   id: string;
   title: string;
-  content: string;
-  // הוסף שדות נוספים לפי הצורך
+  description: string;
+  date: string;
+  images?: string[];
 }
 
 // Your web app's Firebase configuration
