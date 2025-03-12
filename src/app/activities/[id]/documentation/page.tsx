@@ -1,4 +1,4 @@
-import React from 'react';
+import { Metadata } from 'next';
 
 interface Documentation {
   id: string;
@@ -8,13 +8,16 @@ interface Documentation {
   images?: string[];
 }
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
+export const metadata: Metadata = {
+  title: 'תיעודי פעילות',
+  description: 'תיעודי פעילויות בפרויקט המגינים על העצים'
+};
 
-export default function DocumentationPage({ params }: PageProps) {
+export default async function Page({
+  params,
+}: {
+  params: { id: string };
+}) {
   const documentations: Documentation[] = [
     {
       id: '1',
