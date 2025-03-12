@@ -1,11 +1,11 @@
 'use client';
 
+import React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from 'firebase/firestore';
-import React from 'react';
 
 // הגדרת הטיפוס למסמך
 interface Documentation {
@@ -39,12 +39,21 @@ if (typeof window !== 'undefined') {
 
 export { app, analytics, db };
 
-export default function DocumentationList() {
+export default function DocumentationPage() {
   const params = useParams();
-
-  // כאן יבוא הקוד לטעינת התיעודים מ-Firebase
+  const activityId = params?.id as string;
+  
   const documentations: Documentation[] = [
-    // דוגמה לנתונים
+    {
+      id: '1',
+      title: 'פעילות מדידה - כיתה ג1',
+      description: 'התלמידים מדדו את היקף העץ ויצרו גרף השוואתי',
+      date: '2024-03-15',
+      images: [
+        'https://example.com/image1.jpg',
+        'https://example.com/image2.jpg'
+      ]
+    }
   ];
 
   return (
@@ -60,22 +69,20 @@ export default function DocumentationList() {
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid gap-6">
           {documentations.map((doc) => (
             <div key={doc.id} className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="font-bold text-xl">{doc.title}</h3>
-                <span className="text-sm text-gray-500">{doc.date}</span>
-              </div>
+              <h2 className="text-xl font-bold text-green-800 mb-2">{doc.title}</h2>
               <p className="text-gray-600 mb-4">{doc.description}</p>
+              <div className="text-sm text-gray-500">{doc.date}</div>
               {doc.images && doc.images.length > 0 && (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="mt-4 grid grid-cols-2 gap-4">
                   {doc.images.map((img, index) => (
-                    <img
+                    <img 
                       key={index}
                       src={img}
                       alt={`תמונה ${index + 1}`}
-                      className="w-full h-32 object-cover rounded"
+                      className="rounded-lg w-full h-48 object-cover"
                     />
                   ))}
                 </div>
