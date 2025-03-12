@@ -34,7 +34,7 @@ const activitiesData: ActivitiesData = {
     name: 'גילוי היקף העץ ועולם הזיתים',
     subjects: ['מתמטיקה'],
     treeIds: ['olive'],
-    gradeLevel: 'א\'-ג\'',
+    ageGroup: 'א\'-ג\'',
     duration: '45 דקות',
     skills: [
       'הכוונה וניהול עצמי',
@@ -113,7 +113,6 @@ const activitiesData: ActivitiesData = {
     notes: '',
     category: '',
     favorite: false,
-    ageGroup: '',
     audio: '',
     video: '',
     difficulty: '',
@@ -196,7 +195,7 @@ export default function ActivityPage() {
                 {activity.subjects && activity.subjects.length > 0 && activity.subjects.map(subject => (
                   <span key={subject} className="bg-green-100 text-green-800 px-3 py-1 rounded-full">{subject}</span>
                 ))}
-                {activity.gradeLevel && <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{activity.gradeLevel}</span>}
+                {activity.ageGroup && <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{activity.ageGroup}</span>}
                 {activity.duration && <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">{activity.duration}</span>}
               </div>
             </div>
