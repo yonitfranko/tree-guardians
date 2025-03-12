@@ -133,7 +133,9 @@ export default function ActivityPage() {
 
   useEffect(() => {
     const activityId = params?.id;
-    const activityData = activitiesData[activityId];
+    // אם activityId הוא מערך, ניקח את הערך הראשון
+    const id = Array.isArray(activityId) ? activityId[0] : activityId;
+    const activityData = activitiesData[id];
     
     if (activityData) {
       setActivity(activityData);
