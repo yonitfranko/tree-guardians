@@ -419,12 +419,12 @@ export default function ActivityPage() {
                 <p className="text-gray-600">{doc.description}</p>
                 {doc.images && doc.images.length > 0 && (
                   <div className="mt-2 flex gap-2">
-                    {doc.images.map((img, index) => (
+                    {doc.images.map((img: string, index: number) => (
                       <img 
                         key={index} 
                         src={img} 
-                        alt={`תמונה ${index + 1}`} 
-                        className="w-20 h-20 object-cover rounded"
+                        alt={`תמונה ${index + 1}`}
+                        className="w-24 h-24 object-cover rounded-lg"
                       />
                     ))}
                   </div>
