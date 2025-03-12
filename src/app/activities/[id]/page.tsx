@@ -38,6 +38,19 @@ interface Activity {
   tags: string[];
   resources: any;
   documentations: any[];
+  summary: string;
+  preparation: string;
+  image: string;
+  participants: string;
+  objectives: string[];
+  location: string;
+  assessment: string;
+  extensions: string[];
+  safety: string[];
+  adaptations: string[];
+  background: string;
+  standards: string[];
+  notes: string;
 }
 
 interface ActivitiesData {
@@ -119,7 +132,20 @@ const activitiesData: ActivitiesData = {
           'https://example.com/image2.jpg'
         ]
       }
-    ]
+    ],
+    summary: '',
+    preparation: '',
+    image: '',
+    participants: '',
+    objectives: [],
+    location: '',
+    assessment: '',
+    extensions: [],
+    safety: [],
+    adaptations: '',
+    background: '',
+    standards: [],
+    notes: ''
   }
 };
 
