@@ -45,4 +45,5 @@ export interface Activity {
     notes: string;
     documentations: any[];
     resources: Resources;
+    summary: string;
 }
