@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getActivityById, updateActivity } from '@/lib/activityService';
-import { Activity } from '@/types/activity';
+import { Activity, ActivitiesData } from '@/types/activity';
 import ActivityForm from '@/components/activities/ActivityForm';
 import Link from 'next/link';
 
@@ -21,10 +21,6 @@ interface Documentation {
   description: string;
   date: string;
   images?: string[];
-}
-
-interface ActivitiesData {
-  [key: string]: Activity;
 }
 
 // הנתונים הקבועים לבדיקה

@@ -8,13 +8,15 @@ interface Documentation {
   images?: string[];
 }
 
-interface PageProps {
+// שינוי הטיפוס של params כדי להתאים לדרישות של Next.js
+type PageProps = {
   params: {
     id: string;
   };
-}
+  searchParams: { [key: string]: string | string[] | undefined };
+};
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params, searchParams }: PageProps) {
   const documentations: Documentation[] = [
     {
       id: '1',
