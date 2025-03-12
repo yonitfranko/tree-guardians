@@ -57,16 +57,17 @@ const activitiesData: ActivitiesData = {
       teacherResources: [
         {
           type: 'teacher',
-          title: 'מדריך למורה - מדידת היקף',
+          title: 'מדריך למורה - פעילות מדידת היקף',
           url: '#',
-          description: 'הסברים מפורטים על אופן העברת הפעילות'
+          description: 'מדריך מפורט למורה לביצוע הפעילות'
         }
       ],
       worksheets: [
         {
           type: 'worksheet',
           title: 'דף עבודה - רישום מדידות',
-          url: '#'
+          url: '#',
+          description: 'דף עבודה לתלמידים לרישום תוצאות המדידות'
         }
       ],
       media: [
