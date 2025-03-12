@@ -47,4 +47,9 @@ export interface Activity {
     resources: Resources;
     summary: string;
     participants: string;
+    location: string;
+    adaptations: string[];
+    assessment: string;
+    extensions: string[];
+    safety: string[];
 }
