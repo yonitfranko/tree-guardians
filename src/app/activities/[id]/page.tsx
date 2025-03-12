@@ -135,14 +135,17 @@ export default function ActivityPage() {
     const activityId = params?.id;
     // אם activityId הוא מערך, ניקח את הערך הראשון
     const id = Array.isArray(activityId) ? activityId[0] : activityId;
-    const activityData = activitiesData[id];
     
-    if (activityData) {
-      setActivity(activityData);
-    } else {
-      setError('הפעילות לא נמצאה');
+    // נוסיף בדיקה שה-id קיים
+    if (id && activitiesData) {
+      const activityData = activitiesData[id];
+      if (activityData) {
+        setActivity(activityData);
+      } else {
+        setError('הפעילות לא נמצאה');
+      }
     }
-  }, [params]);
+  }, [params, activitiesData]);
 
   const handleUpdateActivity = async (updatedData: Partial<ActivityType>) => {
     try {
