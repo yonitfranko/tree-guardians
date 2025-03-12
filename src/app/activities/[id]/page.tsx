@@ -33,7 +33,7 @@ const activitiesData: ActivitiesData = {
     id: 'olive-math',
     name: 'גילוי היקף העץ ועולם הזיתים',
     subjects: ['מתמטיקה'],
-    treeType: 'עץ זית',
+    treeIds: ['olive'],
     gradeLevel: 'א\'-ג\'',
     duration: '45 דקות',
     skills: [
@@ -208,8 +208,8 @@ export default function ActivityPage() {
                 </svg>
                 עריכת פעילות
               </Link>
-              <Link href={`/trees/${activity.treeType}`} className="text-green-600 hover:text-green-700">
-                חזרה לעץ {activity.treeType}
+              <Link href={`/trees/${activity.treeIds?.[0]}`} className="text-green-600 hover:text-green-700">
+                חזרה לעץ {activity.treeIds?.[0]}
               </Link>
             </div>
           </div>
