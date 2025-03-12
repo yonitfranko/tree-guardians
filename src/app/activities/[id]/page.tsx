@@ -74,7 +74,8 @@ const activitiesData: ActivitiesData = {
         {
           type: 'video',
           title: 'סרטון הדרכה - מדידת היקף עץ',
-          url: '#'
+          url: '#',
+          description: 'סרטון המדגים את תהליך מדידת היקף העץ'
         }
       ],
       relatedActivities: [
