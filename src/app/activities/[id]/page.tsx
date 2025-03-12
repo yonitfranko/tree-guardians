@@ -51,6 +51,14 @@ interface Activity {
   background: string;
   standards: string[];
   notes: string;
+  category: string;
+  favorite: boolean;
+  ageGroup: string;
+  audio: string;
+  video: string;
+  difficulty: string;
+  season: string;
+  equipment: string[];
 }
 
 interface ActivitiesData {
@@ -145,7 +153,15 @@ const activitiesData: ActivitiesData = {
     adaptations: [],
     background: '',
     standards: [],
-    notes: ''
+    notes: '',
+    category: '',
+    favorite: false,
+    ageGroup: '',
+    audio: '',
+    video: '',
+    difficulty: '',
+    season: '',
+    equipment: []
   }
 };
 
