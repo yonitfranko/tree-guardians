@@ -32,7 +32,7 @@ const activitiesData: ActivitiesData = {
   'olive-math': {
     id: 'olive-math',
     name: 'גילוי היקף העץ ועולם הזיתים',
-    subject: 'מתמטיקה',
+    subjects: ['מתמטיקה'],
     treeType: 'עץ זית',
     gradeLevel: 'א\'-ג\'',
     duration: '45 דקות',
@@ -120,7 +120,6 @@ const activitiesData: ActivitiesData = {
     season: '',
     equipment: [],
     link: '',
-    subjects: [],
     skillIds: [],
     treeIds: []
   }
@@ -194,7 +193,9 @@ export default function ActivityPage() {
             <div>
               <h1 className="text-3xl font-bold text-green-800 mb-2">{activity.name}</h1>
               <div className="flex gap-4 text-sm">
-                {activity.subject && <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">{activity.subject}</span>}
+                {activity.subjects && activity.subjects.length > 0 && activity.subjects.map(subject => (
+                  <span key={subject} className="bg-green-100 text-green-800 px-3 py-1 rounded-full">{subject}</span>
+                ))}
                 {activity.gradeLevel && <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{activity.gradeLevel}</span>}
                 {activity.duration && <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">{activity.duration}</span>}
               </div>
