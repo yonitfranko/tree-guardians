@@ -62,6 +62,7 @@ const activitiesData: ActivitiesData = {
           description: 'מדריך מפורט למורה לביצוע הפעילות'
         }
       ],
+      studentResources: [],
       worksheets: [
         {
           type: 'worksheet',
