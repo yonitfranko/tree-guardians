@@ -8,6 +8,7 @@ interface Resource {
 interface Resources {
   teacherResources: Resource[];
   studentResources: Resource[];
+  worksheets: Resource[];
 }
 
 export interface Activity {
