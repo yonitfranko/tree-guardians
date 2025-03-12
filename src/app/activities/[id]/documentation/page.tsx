@@ -5,7 +5,6 @@ interface Documentation {
   title: string;
   description: string;
   date: string;
-  images?: string[];
 }
 
 export const metadata: Metadata = {
@@ -23,11 +22,7 @@ export default async function Page({
       id: '1',
       title: 'פעילות מדידה - כיתה ג1',
       description: 'התלמידים מדדו את היקף העץ ויצרו גרף השוואתי',
-      date: '2024-03-15',
-      images: [
-        'https://example.com/image1.jpg',
-        'https://example.com/image2.jpg'
-      ]
+      date: '2024-03-15'
     }
   ];
 
@@ -41,18 +36,6 @@ export default async function Page({
               <h2 className="text-xl font-bold text-green-800 mb-2">{doc.title}</h2>
               <p className="text-gray-600 mb-4">{doc.description}</p>
               <div className="text-sm text-gray-500">{doc.date}</div>
-              {doc.images && doc.images.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  {doc.images.map((img, index) => (
-                    <img 
-                      key={index}
-                      src={img}
-                      alt={`תמונה ${index + 1}`}
-                      className="rounded-lg w-full h-48 object-cover"
-                    />
-                  ))}
-                </div>
-              )}
             </div>
           ))}
         </div>
