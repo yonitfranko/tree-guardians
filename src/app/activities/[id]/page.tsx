@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getActivityById, updateActivity } from '@/lib/activityService';
-import { Activity } from '@/types/activity';
+import { Activity as ActivityType } from '@/types/activity';
 import ActivityForm from '@/components/activities/ActivityForm';
 import Link from 'next/link';
 
@@ -127,7 +127,7 @@ const activitiesData = {
 export default function ActivityPage() {
   const params = useParams();
   const router = useRouter();
-  const [activity, setActivity] = useState<Activity | null>(null);
+  const [activity, setActivity] = useState<ActivityType | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -142,7 +142,7 @@ export default function ActivityPage() {
     }
   }, [params]);
 
-  const handleUpdateActivity = async (updatedData: Partial<Activity>) => {
+  const handleUpdateActivity = async (updatedData: Partial<ActivityType>) => {
     try {
       if (!activity?.id) return;
       await updateActivity(activity.id, updatedData);
