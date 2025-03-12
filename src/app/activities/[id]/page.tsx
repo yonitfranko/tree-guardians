@@ -35,7 +35,6 @@ const activitiesData: ActivitiesData = {
     subjects: ['מתמטיקה'],
     treeIds: ['olive'],
     ageGroup: 'א\'-ג\'',
-    duration: '45 דקות',
     skills: [
       'הכוונה וניהול עצמי',
       'פתרון בעיות',
@@ -196,7 +195,6 @@ export default function ActivityPage() {
                   <span key={subject} className="bg-green-100 text-green-800 px-3 py-1 rounded-full">{subject}</span>
                 ))}
                 {activity.ageGroup && <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{activity.ageGroup}</span>}
-                {activity.duration && <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">{activity.duration}</span>}
               </div>
             </div>
             {/* כפתורי פעולה */}
