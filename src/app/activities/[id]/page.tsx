@@ -124,6 +124,9 @@ const activitiesData = {
   }
 };
 
+// נוסיף טיפוס שמגדיר את המפתחות האפשריים
+type ActivityId = 'olive-math' | 'pine-science' | 'oak-history' | string; // או רשימה של כל המפתחות האפשריים
+
 export default function ActivityPage() {
   const params = useParams();
   const router = useRouter();
@@ -133,12 +136,11 @@ export default function ActivityPage() {
 
   useEffect(() => {
     const activityId = params?.id;
-    // אם activityId הוא מערך, ניקח את הערך הראשון
     const id = Array.isArray(activityId) ? activityId[0] : activityId;
     
-    // נוסיף בדיקה שה-id קיים
     if (id && activitiesData) {
-      const activityData = activitiesData[id];
+      // נבצע type assertion כדי להגיד לטייפסקריפט שאנחנו יודעים שהמפתח תקין
+      const activityData = activitiesData[id as ActivityId];
       if (activityData) {
         setActivity(activityData);
       } else {
