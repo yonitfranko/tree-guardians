@@ -82,7 +82,8 @@ const activitiesData: ActivitiesData = {
         {
           type: 'related',
           title: 'חישוב שטח הצל של העץ',
-          url: '/activities/olive-math-shadow'
+          url: '/activities/olive-math-shadow',
+          description: 'פעילות המשך לחישוב שטח הצל שהעץ מטיל'
         }
       ]
     },
