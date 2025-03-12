@@ -59,6 +59,10 @@ interface Activity {
   difficulty: string;
   season: string;
   equipment: string[];
+  link: string;
+  subjects: string[];
+  skillIds: string[];
+  treeIds: string[];
 }
 
 interface ActivitiesData {
@@ -161,7 +165,11 @@ const activitiesData: ActivitiesData = {
     video: '',
     difficulty: '',
     season: '',
-    equipment: []
+    equipment: [],
+    link: '',
+    subjects: [],
+    skillIds: [],
+    treeIds: []
   }
 };
 
