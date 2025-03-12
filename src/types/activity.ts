@@ -46,4 +46,5 @@ export interface Activity {
     documentations: any[];
     resources: Resources;
     summary: string;
+    participants: string;
 }
