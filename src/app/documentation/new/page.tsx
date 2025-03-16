@@ -29,9 +29,9 @@ function NewDocumentationContent() {
           router.push('/documentation');
         }}
         onCancel={() => router.back()}
-        activities={activities}
         skills={skills}
-        classes={classes}
+        activities={activities}
+        classes={[]}
       />
     </div>
   );

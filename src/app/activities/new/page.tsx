@@ -4,42 +4,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SKILLS } from '@/lib/constants';
-
-interface Resource {
-  type: 'teacher' | 'worksheet' | 'video' | 'presentation' | 'related';
-  title: string;
-  url: string;
-  description?: string;
-}
-
-interface Activity {
-  id: string;
-  name: string;
-  subject: string;
-  treeType: string;
-  gradeLevel: string;
-  duration: string;
-  skills: string[];
-  description: string;
-  materials: string[];
-  steps: string[];
-  expectedOutcomes: string[];
-  tags: string[];
-  resources?: {
-    teacherResources?: Resource[];
-    worksheets?: Resource[];
-    media?: Resource[];
-    relatedActivities?: Resource[];
-  };
-}
+import { addActivity } from '@/lib/activityService';
+import type { Activity, Resource } from '@/types';
 
 export default function NewActivity() {
   const router = useRouter();
-  const [newSkill, setNewSkill] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [newTag, setNewTag] = useState('');
   const [activity, setActivity] = useState<Partial<Activity>>({
     name: '',
     subject: '',
-    treeType: 'עץ זית', // ברירת מחדל
+    treeType: '',
     gradeLevel: '',
     duration: '',
     skills: [],
@@ -47,37 +22,98 @@ export default function NewActivity() {
     materials: [],
     steps: [],
     expectedOutcomes: [],
-    tags: []
+    tags: [],
+    resources: {
+      teacherResources: [],
+      worksheets: [],
+      media: [],
+      relatedActivities: []
+    }
   });
+
+  const [newResource, setNewResource] = useState<Partial<Resource>>({
+    type: 'teacherResources',
+    title: '',
+    url: '',
+    description: ''
+  });
+
+  const trees = [
+    { id: 'olive', name: 'עץ זית' },
+    { id: 'pomegranate', name: 'עץ רימון' },
+    { id: 'cypress', name: 'עץ ברוש' },
+    { id: 'chinaberry', name: 'עץ איזדרכת' },
+    { id: 'clementine', name: 'עץ קלמנטינות' },
+    { id: 'poplar', name: 'עץ צפצפה' },
+    { id: 'oak', name: 'עץ אלון' },
+    { id: 'sycamore', name: 'עץ השיקמה' }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // יצירת מזהה ייחודי מבוסס על שם הפעילות
-    const id = activity.name
-      ?.toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '');
+    setLoading(true);
+    
+    try {
+      const savedActivity = await addActivity(activity as Activity);
+      alert('הפעילות נשמרה בהצלחה!');
+      router.push(`/activities/${savedActivity.id}`);
+    } catch (error) {
+      console.error('Error saving activity:', error);
+      alert('שגיאה בשמירת הפעילות');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const newActivity = {
-      ...activity,
-      id
-    };
+  const handleAddTag = () => {
+    if (newTag.trim()) {
+      const tags = newTag.split(',').map(tag => tag.trim()).filter(tag => tag);
+      setActivity({
+        ...activity,
+        tags: [...(activity.tags || []), ...tags]
+      });
+      setNewTag('');
+    }
+  };
 
-    // כאן יבוא הקוד לשמירה ב-Firebase
-    console.log('יוצר פעילות חדשה:', newActivity);
-    router.push('/');
+  const handleAddResource = () => {
+    if (newResource.title && newResource.url) {
+      const resourceType = newResource.type as keyof NonNullable<Activity['resources']>;
+      const currentResources = activity.resources?.[resourceType] || [];
+      
+      setActivity({
+        ...activity,
+        resources: {
+          teacherResources: [],
+          worksheets: [],
+          media: [],
+          relatedActivities: [],
+          ...activity.resources,
+          [resourceType]: [...currentResources, newResource as Resource]
+        }
+      });
+
+      setNewResource({
+        type: 'teacherResources',
+        title: '',
+        url: '',
+        description: ''
+      });
+    }
   };
 
   const handleAddSkill = () => {
-    if (newSkill && activity.skills && activity.skills.length < 5) {
-      setActivity({
-        ...activity,
-        skills: [...activity.skills, newSkill]
-      });
-      setNewSkill('');
+    if (activity.skills && activity.skills.length < 5) {
+      const skill = document.querySelector<HTMLInputElement>('input[name="skill"]')?.value;
+      if (skill) {
+        setActivity({
+          ...activity,
+          skills: [...activity.skills, skill]
+        });
+        if (document.querySelector<HTMLInputElement>('input[name="skill"]')) {
+          (document.querySelector<HTMLInputElement>('input[name="skill"]') as HTMLInputElement).value = '';
+        }
+      }
     }
   };
 
@@ -105,6 +141,23 @@ export default function NewActivity() {
                 required
                 placeholder="לדוגמה: גילוי היקף העץ ועולם הזיתים"
               />
+            </div>
+
+            <div>
+              <label className="block text-gray-700 mb-2">סוג העץ</label>
+              <select
+                value={activity.treeType}
+                onChange={(e) => setActivity({...activity, treeType: e.target.value})}
+                className="w-full p-2 border rounded"
+                required
+              >
+                <option value="">בחר עץ</option>
+                {trees.map((tree) => (
+                  <option key={tree.id} value={tree.id}>
+                    {tree.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -179,7 +232,7 @@ export default function NewActivity() {
                             type="checkbox"
                             checked={activity.skills?.includes(skill)}
                             onChange={(e) => {
-                              if (e.target.checked && activity.skills?.length < 5) {
+                              if (e.target.checked && (activity.skills?.length ?? 0) < 5) {
                                 setActivity({
                                   ...activity,
                                   skills: [...(activity.skills || []), skill]
@@ -191,7 +244,7 @@ export default function NewActivity() {
                                 });
                               }
                             }}
-                            disabled={!activity.skills?.includes(skill) && (activity.skills?.length || 0) >= 5}
+                            disabled={!activity.skills?.includes(skill) && ((activity.skills?.length ?? 0) >= 5)}
                           />
                           {skill}
                         </label>
@@ -243,16 +296,151 @@ export default function NewActivity() {
 
             <div>
               <label className="block text-gray-700 mb-2">תגיות</label>
-              <input
-                type="text"
-                value={activity.tags?.join(', ')}
-                onChange={(e) => setActivity({
-                  ...activity,
-                  tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
-                })}
-                className="w-full p-2 border rounded"
-                placeholder="הפרד תגיות בפסיקים: למשל - חוץ, מדידות, עבודת צוות"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="הוסף תגיות, הפרד עם פסיקים"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddTag}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  הוסף
+                </button>
+              </div>
+              {activity.tags && activity.tags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {activity.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2 py-1 bg-gray-100 rounded flex items-center gap-1"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => setActivity({
+                          ...activity,
+                          tags: activity.tags?.filter(t => t !== tag)
+                        })}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">חומרי עזר</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    סוג המשאב
+                  </label>
+                  <select
+                    value={newResource.type}
+                    onChange={(e) => setNewResource({ ...newResource, type: e.target.value as Resource['type'] })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="teacherResources">📚 חומרי עזר למורה</option>
+                    <option value="worksheets">📝 דפי עבודה</option>
+                    <option value="media">🎥 סרטונים ומצגות</option>
+                    <option value="relatedActivities">🔗 קישורים נוספים</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    כותרת
+                  </label>
+                  <input
+                    type="text"
+                    value={newResource.title}
+                    onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    קישור
+                  </label>
+                  <input
+                    type="url"
+                    value={newResource.url}
+                    onChange={(e) => setNewResource({ ...newResource, url: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    תיאור (אופציונלי)
+                  </label>
+                  <input
+                    type="text"
+                    value={newResource.description}
+                    onChange={(e) => setNewResource({ ...newResource, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddResource}
+                  className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  הוסף משאב
+                </button>
+              </div>
+
+              {activity.resources && Object.entries(activity.resources).map(([type, resources]) => (
+                resources && resources.length > 0 && (
+                  <div key={type} className="mt-4">
+                    <h4 className="font-medium mb-2">
+                      {type === 'teacherResources' && '📚 חומרי עזר למורה'}
+                      {type === 'worksheets' && '📝 דפי עבודה'}
+                      {type === 'media' && '🎥 סרטונים ומצגות'}
+                      {type === 'relatedActivities' && '🔗 פעילויות קשורות'}
+                    </h4>
+                    <ul className="space-y-2">
+                      {resources.map((resource, index) => (
+                        <li key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                          <span>{resource.title}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedResources = [...resources];
+                              updatedResources.splice(index, 1);
+                              setActivity({
+                                ...activity,
+                                resources: {
+                                  teacherResources: [],
+                                  worksheets: [],
+                                  media: [],
+                                  relatedActivities: [],
+                                  ...activity.resources,
+                                  [type]: updatedResources
+                                }
+                              });
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              ))}
             </div>
 
             <div className="flex justify-between">
@@ -264,9 +452,12 @@ export default function NewActivity() {
               </Link>
               <button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
+                disabled={loading}
+                className={`bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded ${
+                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                יצירת פעילות
+                {loading ? 'שומר...' : 'שמור פעילות'}
               </button>
             </div>
           </form>

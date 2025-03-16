@@ -1,5 +1,5 @@
 // src/data/sample-trees.ts
-import { Tree } from '@/types/tree';
+import { Tree } from '@/types';
 
 export const trees: Tree[] = [
   {

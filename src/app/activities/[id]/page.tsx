@@ -1,442 +1,344 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { getActivityById, updateActivity } from '@/lib/activityService';
-import { Activity, ActivitiesData } from '@/types/activity';
-import ActivityForm from '@/components/activities/ActivityForm';
+import { Activity } from '@/types';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import Link from 'next/link';
-
-interface Resource {
-  type: 'teacher' | 'worksheet' | 'video' | 'presentation' | 'related';
-  title: string;
-  url: string;
-  description?: string;
-}
-
-interface Documentation {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  images?: string[];
-}
-
-// הנתונים הקבועים לבדיקה
-const activitiesData: ActivitiesData = {
-  'olive-math': {
-    id: 'olive-math',
-    name: 'גילוי היקף העץ ועולם הזיתים',
-    subjects: ['מתמטיקה'],
-    treeIds: [],
-    ageGroup: 'ד-ו',
-    skillIds: [],
-    description: 'פעילות חקר מתמטית סביב עץ הזית',
-    materials: 'סרט מדידה, דף נייר, עיפרון',
-    preparation: 'להכין את דפי העבודה מראש',
-    expectedOutcomes: [
-      'התלמידים ילמדו למדוד היקף של עץ',
-      'התלמידים יבינו את הקשר בין היקף לקוטר'
-    ],
-    steps: ['מדידת היקף העץ', 'חישוב הקוטר', 'השוואה בין עצים שונים'],
-    duration: '45 דקות',
-    treeType: 'זית',
-    gradeLevel: 'כיתה ה',
-    skills: ['מדידה', 'חישוב', 'עבודת צוות'],
-    tags: ['פעילות חוץ', 'עבודת צוות', 'מדידה', 'חישובים', 'חקר'],
-    resources: {
-      teacherResources: [
-        {
-          type: 'teacher',
-          title: 'מדריך למורה - פעילות מדידת היקף',
-          url: '#',
-          description: 'מדריך מפורט למורה לביצוע הפעילות'
-        }
-      ],
-      studentResources: [],
-      worksheets: [
-        {
-          type: 'worksheet',
-          title: 'דף עבודה - רישום מדידות',
-          url: '#',
-          description: 'דף עבודה לתלמידים לרישום תוצאות המדידות'
-        }
-      ],
-      media: [
-        {
-          type: 'video',
-          title: 'סרטון הדרכה - מדידת היקף עץ',
-          url: '#',
-          description: 'סרטון המדגים את תהליך מדידת היקף העץ'
-        }
-      ],
-      relatedActivities: [
-        {
-          type: 'related',
-          title: 'חישוב שטח הצל של העץ',
-          url: '/activities/olive-math-shadow',
-          description: 'פעילות המשך לחישוב שטח הצל שהעץ מטיל'
-        }
-      ]
-    },
-    documentations: [
-      {
-        id: '1',
-        title: 'פעילות מדידה - כיתה ג1',
-        description: 'התלמידים מדדו את היקף העץ ויצרו גרף השוואתי',
-        date: '2024-03-15',
-        images: [
-          'https://example.com/image1.jpg',
-          'https://example.com/image2.jpg'
-        ]
-      }
-    ],
-    summary: 'פעילות חקר מתמטית המשלבת מדידות והיכרות עם עץ הזית',
-    image: '/images/olive-tree.jpg',
-    participants: '20-30 תלמידים',
-    objectives: ['הבנת מושג ההיקף', 'פיתוח מיומנויות מדידה', 'היכרות עם עץ הזית'],
-    location: 'חצר בית הספר',
-    assessment: 'הערכת דפי העבודה ותצפית על עבודת התלמידים',
-    extensions: ['חישוב נפח גזע העץ', 'מעקב אחר גדילת העץ לאורך זמן'],
-    safety: ['להיזהר מענפים נמוכים', 'לשמור על מרחק בטוח בין התלמידים'],
-    adaptations: [],
-    background: '',
-    standards: [],
-    notes: '',
-    category: '',
-    favorite: false,
-    audio: '',
-    video: '',
-    difficulty: '',
-    season: '',
-    equipment: [],
-    link: '/activities/olive-math'
-  }
-};
-
-// נוסיף טיפוס שמגדיר את המפתחות האפשריים
-type ActivityId = 'olive-math' | 'pine-science' | 'oak-history' | string; // או רשימה של כל המפתחות האפשריים
 
 export default function ActivityPage() {
   const params = useParams();
   const router = useRouter();
-  const [activity, setActivity] = useState<Activity | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [activity, setActivity] = useState<Activity>({
+    id: '',
+    name: '',
+    subject: '',
+    treeType: '',
+    gradeLevel: '',
+    duration: '',
+    skills: [],
+    description: '',
+    materials: [],
+    steps: [],
+    expectedOutcomes: [],
+    tags: [],
+    resources: {
+      teacherResources: [],
+      worksheets: [],
+      media: [],
+      relatedActivities: []
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const activityId = params?.id;
-    const id = Array.isArray(activityId) ? activityId[0] : activityId;
-    
-    if (id && activitiesData) {
-      const activityData = activitiesData[id];
-      if (activityData) {
-        setActivity(activityData);
-      } else {
-        setError('הפעילות לא נמצאה');
+    async function fetchActivity() {
+      const activityId = params?.id;
+      if (!activityId || typeof activityId !== 'string') return;
+
+      try {
+        const activityRef = doc(db, 'activities', activityId);
+        const activityDoc = await getDoc(activityRef);
+        if (activityDoc.exists()) {
+          const data = activityDoc.data();
+          console.log('Raw data from Firestore:', data);
+          
+          // מיזוג המשאבים מכל המקורות האפשריים
+          const mergedResources = {
+            teacherResources: data.teacherResources || data.resources?.teacherResources || [],
+            worksheets: data.worksheets || data.resources?.worksheets || [],
+            media: data.media || data.resources?.media || [],
+            relatedActivities: data.relatedActivities || data.resources?.relatedActivities || []
+          };
+          
+          console.log('Merged resources:', mergedResources);
+          
+          const processedActivity = {
+            id: activityDoc.id,
+            name: data.name || data.title || '',
+            treeType: data.treeType || '',
+            subject: data.subject || data.domain || '',
+            gradeLevel: data.gradeLevel || data.ageGroup || '',
+            duration: data.duration || '',
+            description: data.description || '',
+            skills: data.skills || [],
+            materials: data.materials || [],
+            steps: data.steps || [],
+            expectedOutcomes: data.expectedOutcomes || data.expectedResults || [],
+            tags: data.tags || [],
+            resources: mergedResources
+          } as Activity;
+          
+          console.log('Processed activity:', processedActivity);
+          setActivity(processedActivity);
+        }
+      } catch (error) {
+        console.error('Error fetching activity:', error);
+      } finally {
+        setLoading(false);
       }
     }
-  }, [params, activitiesData]);
 
-  const handleUpdateActivity = async (updatedData: Partial<Activity>) => {
-    try {
-      if (!activity?.id) return;
-      await updateActivity(activity.id, updatedData);
-      // עדכון המידע המקומי
-      setActivity(prev => prev ? { ...prev, ...updatedData } : null);
-    } catch (err) {
-      console.error("Error updating activity:", err);
-      alert("שגיאה בעדכון הפעילות. נסה שוב מאוחר יותר.");
+    fetchActivity();
+  }, [params?.id]);
+
+  const handleDelete = async () => {
+    if (!activity?.id) return;
+    
+    if (window.confirm('האם אתה בטוח שברצונך למחוק פעילות זו?')) {
+      try {
+        const activityRef = doc(db, 'activities', activity.id);
+        await deleteDoc(activityRef);
+        router.push('/activities');
+      } catch (error) {
+        console.error('Error deleting activity:', error);
+        alert('שגיאה במחיקת הפעילות');
+      }
     }
   };
 
-  if (error) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">{error}</h1>
-          <Link href="/" className="text-green-600 hover:text-green-700">
-            חזרה לדף הבית
-          </Link>
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
-  if (!activity) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">טוען...</h1>
-        </div>
-      </div>
-    );
+  if (!activity.id) {
+    return <div className="text-center py-8">הפעילות לא נמצאה</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* כותרת ומידע בסיסי */}
-        <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-green-800 mb-2">{activity.name}</h1>
-              <div className="flex gap-4 text-sm">
-                {activity.subjects && activity.subjects.length > 0 && activity.subjects.map(subject => (
-                  <span key={subject} className="bg-green-100 text-green-800 px-3 py-1 rounded-full">{subject}</span>
-                ))}
-                {activity.ageGroup && <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{activity.ageGroup}</span>}
-              </div>
-            </div>
-            {/* כפתורי פעולה */}
-            <div className="flex gap-4">
-              <Link href={`/activities/${activity.id}/edit`} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
+        {/* כותרת ופעולות */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex justify-between items-start">
+            <h1 className="text-3xl font-bold text-green-800">{activity.name}</h1>
+            <div className="flex gap-4 mb-8">
+              <Link
+                href={`/activities/${activity.id}/edit`}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
-                עריכת פעילות
+                ערוך פעילות
               </Link>
-              <Link href={`/trees/${activity.treeIds?.[0]}`} className="text-green-600 hover:text-green-700">
-                חזרה לעץ {activity.treeIds?.[0]}
+              <Link
+                href={`/activities/${activity.id}/documentation/new`}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                </svg>
+                הוסף תיעוד
               </Link>
             </div>
           </div>
-          {activity.description && <p className="text-gray-600 text-lg mb-6">{activity.description}</p>}
-          
-          {/* תגיות */}
-          {activity.tags && activity.tags.length > 0 && (
+        </div>
+
+        {/* פרטי הפעילות */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">פרטי הפעילות</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p><span className="font-medium">סוג העץ:</span> {activity.treeType}</p>
+              <p><span className="font-medium">תחום דעת:</span> {activity.subject}</p>
+            </div>
+            <div>
+              <p><span className="font-medium">שכבת גיל:</span> {activity.gradeLevel}</p>
+              <p><span className="font-medium">משך הפעילות:</span> {activity.duration}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* תיאור */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">תיאור</h2>
+          <p className="text-gray-700 whitespace-pre-wrap">{activity.description}</p>
+        </div>
+
+        {/* מיומנויות */}
+        {activity.skills?.length > 0 && (
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">מיומנויות</h2>
             <div className="flex flex-wrap gap-2">
-              {activity.tags.map(tag => (
-                <span key={tag} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
-                  {tag}
+              {activity.skills.map((skill) => (
+                <span
+                  key={skill}
+                  className="px-3 py-1 bg-blue-100 text-blue-800 rounded"
+                >
+                  {skill}
                 </span>
               ))}
-            </div>
-          )}
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* מידע על הפעילות */}
-          <div className="space-y-8">
-            {/* מיומנויות */}
-            {activity.skillIds && activity.skillIds.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-bold text-green-800 mb-4">מיומנויות נרכשות</h2>
-                <ul className="space-y-2">
-                  {activity.skillIds.map(skill => (
-                    <li key={skill} className="flex items-center gap-2">
-                      <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {skill}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* חומרים */}
-            {activity.materials && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-bold text-green-800 mb-4">חומרים נדרשים</h2>
-                <ul className="list-disc list-inside space-y-2 text-gray-600">
-                  {Array.isArray(activity.materials) ? (
-                    activity.materials.map(material => (
-                      <li key={material}>{material}</li>
-                    ))
-                  ) : (
-                    <li>{activity.materials}</li>
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* מהלך ותוצרים */}
-          <div className="space-y-8">
-            {/* שלבי הפעילות */}
-            {activity.preparation && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-bold text-green-800 mb-4">מהלך הפעילות</h2>
-                <p className="text-gray-600">{activity.preparation}</p>
-              </div>
-            )}
-
-            {/* תוצרים מצופים */}
-            {activity.expectedOutcomes && activity.expectedOutcomes.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-bold text-green-800 mb-4">תוצרים מצופים</h2>
-                <ul className="space-y-2">
-                  {activity.expectedOutcomes.map(outcome => (
-                    <li key={outcome} className="flex items-center gap-2 text-gray-600">
-                      <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                      {outcome}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* קישורים - מוצג רק אם יש קישורים */}
-        {activity.resources && (
-          <div className="mt-8 bg-white rounded-xl shadow-md p-8">
-            <h2 className="text-2xl font-bold text-green-800 mb-6">חומרים נלווים</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* חומרי עזר למורה */}
-              {activity.resources.teacherResources && (
-                <div>
-                  <h3 className="font-bold text-lg mb-3">חומרי עזר למורה</h3>
-                  <ul className="space-y-2">
-                    {activity.resources.teacherResources.map(resource => (
-                      <li key={resource.title}>
-                        <a 
-                          href={resource.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-green-600 hover:text-green-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                          {resource.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* דפי עבודה */}
-              {activity.resources.worksheets && (
-                <div>
-                  <h3 className="font-bold text-lg mb-3">דפי עבודה</h3>
-                  <ul className="space-y-2">
-                    {activity.resources.worksheets.map(resource => (
-                      <li key={resource.title}>
-                        <a 
-                          href={resource.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-green-600 hover:text-green-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          {resource.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* מדיה */}
-              {activity.resources.media && (
-                <div>
-                  <h3 className="font-bold text-lg mb-3">סרטונים ומצגות</h3>
-                  <ul className="space-y-2">
-                    {activity.resources.media.map(resource => (
-                      <li key={resource.title}>
-                        <a 
-                          href={resource.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-green-600 hover:text-green-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {resource.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* פעילויות קשורות */}
-              {activity.resources.relatedActivities && (
-                <div>
-                  <h3 className="font-bold text-lg mb-3">פעילויות קשורות</h3>
-                  <ul className="space-y-2">
-                    {activity.resources.relatedActivities.map(resource => (
-                      <li key={resource.title}>
-                        <Link
-                          href={resource.url}
-                          className="text-green-600 hover:text-green-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                          </svg>
-                          {resource.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </div>
         )}
 
-        {/* כפתורי פעולה */}
-        <div className="mt-8 flex justify-center gap-4">
-          <Link 
-            href={`/activities/${activity.id}/documentation/new`}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-md text-lg transition-colors"
-          >
-            הוספת תיעוד לפעילות
-          </Link>
-          
-          <Link 
-            href={`/activities/${activity.id}/documentation`}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md text-lg transition-colors"
-          >
-            צפייה בתיעודים קודמים
-          </Link>
+        {/* חומרים נדרשים */}
+        {activity.materials?.length > 0 && (
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">ציוד נדרש</h2>
+            <ul className="list-disc list-inside space-y-1">
+              {activity.materials.map((material) => (
+                <li key={material}>{material}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* שלבי הפעילות */}
+        {activity.steps?.length > 0 && (
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">שלבי הפעילות</h2>
+            <ol className="list-decimal list-inside space-y-2">
+              {activity.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {/* תוצרים מצופים */}
+        {activity.expectedOutcomes?.length > 0 && (
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">תוצרים מצופים</h2>
+            <ul className="list-disc list-inside space-y-1">
+              {activity.expectedOutcomes.map((outcome) => (
+                <li key={outcome}>{outcome}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* משאבים */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">משאבים וקישורים</h2>
+          <div className="space-y-6">
+            {activity.resources?.teacherResources && activity.resources.teacherResources.length > 0 && (
+              <div>
+                <h3 className="font-medium text-lg mb-3">📚 חומרי עזר למורה</h3>
+                <ul className="space-y-3">
+                  {activity.resources.teacherResources.map((resource, index) => (
+                    <li key={index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+                      <a 
+                        href={resource.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                      >
+                        <span className="mr-2">🔗</span>
+                        {resource.title}
+                      </a>
+                      {resource.description && (
+                        <p className="text-sm text-gray-600 mt-2 pr-6">{resource.description}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {activity.resources?.worksheets && activity.resources.worksheets.length > 0 && (
+              <div>
+                <h3 className="font-medium text-lg mb-3">📝 דפי עבודה</h3>
+                <ul className="space-y-3">
+                  {activity.resources.worksheets.map((resource, index) => (
+                    <li key={index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+                      <a 
+                        href={resource.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                      >
+                        <span className="mr-2">🔗</span>
+                        {resource.title}
+                      </a>
+                      {resource.description && (
+                        <p className="text-sm text-gray-600 mt-2 pr-6">{resource.description}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {activity.resources?.media && activity.resources.media.length > 0 && (
+              <div>
+                <h3 className="font-medium text-lg mb-3">🎥 סרטונים ומצגות</h3>
+                <ul className="space-y-3">
+                  {activity.resources.media.map((resource, index) => (
+                    <li key={index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+                      <a 
+                        href={resource.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                      >
+                        <span className="mr-2">🔗</span>
+                        {resource.title}
+                      </a>
+                      {resource.description && (
+                        <p className="text-sm text-gray-600 mt-2 pr-6">{resource.description}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {activity.resources?.relatedActivities && activity.resources.relatedActivities.length > 0 && (
+              <div>
+                <h3 className="font-medium text-lg mb-3">🔗 קישורים נוספים</h3>
+                <ul className="space-y-3">
+                  {activity.resources.relatedActivities.map((resource, index) => (
+                    <li key={index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+                      <a 
+                        href={resource.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                      >
+                        <span className="mr-2">🔗</span>
+                        {resource.title}
+                      </a>
+                      {resource.description && (
+                        <p className="text-sm text-gray-600 mt-2 pr-6">{resource.description}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {(!activity.resources?.teacherResources?.length &&
+              !activity.resources?.worksheets?.length &&
+              !activity.resources?.media?.length &&
+              !activity.resources?.relatedActivities?.length) && (
+              <p className="text-gray-500 text-center py-4">אין משאבים זמינים</p>
+            )}
+          </div>
         </div>
 
-        {/* הצגת תיעודים אחרונים */}
-        <div className="mt-8 bg-white rounded-xl shadow-md p-8">
-          <h2 className="text-2xl font-bold text-green-800 mb-6">תיעודים אחרונים</h2>
-          <div className="grid gap-4">
-            {activity.documentations?.slice(0, 3).map((doc) => (
-              <div key={doc.id} className="border-b pb-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold">{doc.title}</h3>
-                  <span className="text-sm text-gray-500">{doc.date}</span>
-                </div>
-                <p className="text-gray-600">{doc.description}</p>
-                {doc.images && doc.images.length > 0 && (
-                  <div className="mt-2 flex gap-2">
-                    {doc.images.map((img: string, index: number) => (
-                      <img 
-                        key={index} 
-                        src={img} 
-                        alt={`תמונה ${index + 1}`}
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+        {/* תגיות */}
+        {activity.tags?.length > 0 && (
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">תגיות</h2>
+            <div className="flex flex-wrap gap-2">
+              {activity.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-100 text-gray-800 rounded"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
-          {activity.documentations?.length > 3 && (
-            <Link 
-              href={`/activities/${activity.id}/documentation`}
-              className="mt-4 text-green-600 hover:text-green-700 inline-block"
-            >
-              הצג את כל התיעודים ({activity.documentations.length})
-            </Link>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

@@ -13,7 +13,9 @@ export default function SkillsProgress({ acquiredSkills, className }: SkillsProg
 
   // מחשב את אחוז ההתקדמות לכל קטגוריה
   const getCategoryProgress = (categorySkills: string[]) => {
-    const acquired = categorySkills.filter(skill => acquiredSkills.includes(skill));
+    const acquired = categorySkills.filter(skill => 
+      acquiredSkills.includes(skill)
+    );
     return {
       count: acquired.length,
       total: categorySkills.length,
@@ -21,12 +23,12 @@ export default function SkillsProgress({ acquiredSkills, className }: SkillsProg
     };
   };
 
-  // צבעים לכל קטגוריה
-  const categoryColors = {
-    THINKING: 'bg-blue-500',
-    LEARNING: 'bg-green-500',
-    PERSONAL: 'bg-purple-500',
-    SOCIAL: 'bg-orange-500'
+  // צבעים וכותרות לכל קטגוריה
+  const categoryInfo = {
+    THINKING: { color: 'bg-blue-500', title: 'חשיבה' },
+    LEARNING: { color: 'bg-green-500', title: 'למידה' },
+    PERSONAL: { color: 'bg-purple-500', title: 'אישי' },
+    SOCIAL: { color: 'bg-orange-500', title: 'חברתי' }
   };
 
   return (
@@ -36,6 +38,7 @@ export default function SkillsProgress({ acquiredSkills, className }: SkillsProg
       <div className="space-y-6">
         {Object.entries(SKILLS).map(([category, { title, skills }]) => {
           const progress = getCategoryProgress(skills);
+          const categoryData = categoryInfo[category as keyof typeof categoryInfo];
           
           return (
             <div key={category} className="border rounded-lg p-4">
@@ -45,7 +48,7 @@ export default function SkillsProgress({ acquiredSkills, className }: SkillsProg
               >
                 <div className="flex-1">
                   <div className="flex justify-between mb-2">
-                    <h3 className="font-bold text-lg">{title}</h3>
+                    <h3 className="font-bold text-lg">{categoryData.title}</h3>
                     <span className="text-gray-600">
                       {progress.count} מתוך {progress.total}
                     </span>
@@ -54,7 +57,7 @@ export default function SkillsProgress({ acquiredSkills, className }: SkillsProg
                   {/* Progress Bar */}
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                     <div 
-                      className={`h-full ${categoryColors[category as keyof typeof categoryColors]} transition-all`}
+                      className={`h-full ${categoryData.color} transition-all`}
                       style={{ width: `${progress.percentage}%` }}
                     />
                   </div>
@@ -72,27 +75,30 @@ export default function SkillsProgress({ acquiredSkills, className }: SkillsProg
               {/* רשימת המיומנויות המפורטת */}
               {expandedCategory === category && (
                 <div className="mt-4 grid gap-2">
-                  {skills.map(skill => (
-                    <div 
-                      key={skill}
-                      className={`p-2 rounded flex items-center ${
-                        acquiredSkills.includes(skill) 
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-gray-50 text-gray-500'
-                      }`}
-                    >
-                      {acquiredSkills.includes(skill) ? (
-                        <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                      )}
-                      {skill}
-                    </div>
-                  ))}
+                  {skills.map(skill => {
+                    const isAcquired = acquiredSkills.includes(skill);
+                    return (
+                      <div 
+                        key={skill}
+                        className={`p-2 rounded flex items-center ${
+                          isAcquired 
+                            ? 'bg-green-50 text-green-700'
+                            : 'bg-gray-50 text-gray-500'
+                        }`}
+                      >
+                        {isAcquired ? (
+                          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                        )}
+                        {skill}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -24,12 +24,12 @@ export default function Navbar() {
           </Link>
 
           {/* תפריט ניווט */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <Link 
               href="/"
               className={`px-3 py-2 rounded-md text-sm font-medium hover:bg-green-700 ${isActive('/')}`}
             >
-              פעילויות
+              העצים שלנו
             </Link>
             <Link 
               href="/classes"

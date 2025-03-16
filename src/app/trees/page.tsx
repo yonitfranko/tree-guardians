@@ -4,8 +4,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getAllTrees } from '@/lib/treeService';
-import { Tree } from '@/types/tree';
+import { getTrees } from '@/lib/treeService';
+import { Tree } from '@/types';
 
 export default function TreesPage() {
   const [trees, setTrees] = useState<Tree[]>([]);
@@ -16,7 +16,7 @@ export default function TreesPage() {
     const fetchTrees = async () => {
       try {
         setLoading(true);
-        const data = await getAllTrees();
+        const data = await getTrees();
         setTrees(data);
       } catch (err) {
         console.error("Error loading trees:", err);

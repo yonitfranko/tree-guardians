@@ -1,159 +1,139 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-
-// טיפוסי נתונים
-interface Activity {
-  id: string;
-  name: string;
-  subject: string;
-  treeType: string;
-  gradeLevel: string;
-  duration: string;
-  skills: string[];
-  description: string;
-  materials: string[];
-  steps: string[];
-  expectedOutcomes: string[];
-  tags: string[];
-}
-
-interface TreeData {
-  id: string;
-  name: string;
-  image: string;
-  description: string;
-  activities: Activity[];
-}
-
-// נתוני הדוגמה (בהמשך יגיעו מ-Firebase)
-const treeData: TreeData = {
-  id: 'olive',
-  name: 'עץ זית',
-  image: 'https://i.imgur.com/sPIIkjH.png',
-  description: 'עץ הזית הוא אחד מסמלי ארץ ישראל, המסמל שלום, חיים ארוכים ושורשיות.',
-  activities: [
-    {
-      id: 'olive-math',
-      name: 'גילוי היקף העץ ועולם הזיתים',
-      subject: 'מתמטיקה',
-      treeType: 'עץ זית',
-      gradeLevel: 'א\'-ג\'',
-      duration: '45 דקות',
-      skills: [
-        'הכוונה וניהול עצמי',
-        'פתרון בעיות',
-        'יכולת למידה'
-      ],
-      description: 'פעילות חקר מתמטית המשלבת מדידת היקף עצי זית, יצירת גרף השוואתי וחישובי כמויות של פירות על העץ.',
-      materials: [
-        'סרט מידה',
-        'דפי רישום מובנים',
-        'כלי כתיבה וצבעים',
-        'אפליקציית RING SIZER (אופציונלי)'
-      ],
-      steps: [
-        'מדידת היקף עצי זית באמצעות סרט מדידה ורישום התוצאות',
-        'השוואת מדידות - כמה ילדים צריך כדי "להקיף" עץ אחד',
-        'יצירת גרף עמודות של העצים לפי עובי הגזע',
-        'חישוב כמות הזיתים בעץ על בסיס מדגם מענף אחד'
-      ],
-      expectedOutcomes: [
-        'גרף עמודות השוואתי',
-        'טבלת מדידות היקפים',
-        'חישובי כמויות זיתים'
-      ],
-      tags: ['פעילות חוץ', 'עבודת צוות', 'מדידה', 'חישובים', 'חקר']
-    },
-    // ... שאר הפעילויות
-  ]
-};
+import { Activity, Tree } from '@/types';
+import { ActivityCard } from '@/components/ActivityCard';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function TreePage() {
   const params = useParams();
-  const [selectedSubject, setSelectedSubject] = useState<string>('');
+  const treeId = params?.id as string;
+  const [tree, setTree] = useState<Tree | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // סינון פעילויות לפי תחום דעת
-  const filteredActivities = selectedSubject 
-    ? treeData.activities.filter(activity => activity.subject === selectedSubject)
-    : treeData.activities;
+  useEffect(() => {
+    async function fetchTreeAndActivities() {
+      if (!treeId) return;
+      
+      try {
+        // קבלת הפעילויות הקשורות לעץ מפיירסטור
+        const activitiesRef = collection(db, 'activities');
+        const q = query(activitiesRef, where('treeType', '==', treeId));
+        const querySnapshot = await getDocs(q);
+        
+        const treeActivities = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Activity[];
 
-  // רשימת תחומי הדעת הייחודיים
-  const subjects = Array.from(new Set(treeData.activities.map(a => a.subject)));
+        // מציאת העץ המתאים
+        const trees = {
+          'olive': {
+            id: 'olive',
+            name: 'עץ זית',
+            image: 'https://i.imgur.com/sPIIkjH.png',
+            description: 'עץ הזית הוא אחד מסמלי ארץ ישראל, המסמל שלום, חיים ארוכים ושורשיות.'
+          },
+          'pomegranate': {
+            id: 'pomegranate',
+            name: 'עץ רימון',
+            image: 'https://i.imgur.com/yogNdDO.png',
+            description: 'עץ הרימון מלא בפירות מתוקים וטעימים'
+          },
+          'cypress': {
+            id: 'cypress',
+            name: 'עץ ברוש',
+            image: 'https://i.imgur.com/blOQVis.png',
+            description: 'עץ הברוש הגבוה מתנשא לשמיים'
+          },
+          'chinaberry': {
+            id: 'chinaberry',
+            name: 'עץ איזדרכת',
+            image: 'https://i.imgur.com/trksnJM.png',
+            description: 'עץ האיזדרכת מספק צל נעים'
+          },
+          'clementine': {
+            id: 'clementine',
+            name: 'עץ קלמנטינות',
+            image: 'https://i.imgur.com/C9kxwmD.png',
+            description: 'עץ הקלמנטינות מלא בפירות הדר מתוקים'
+          },
+          'poplar': {
+            id: 'poplar',
+            name: 'עץ צפצפה',
+            image: 'https://i.imgur.com/P5K3T73.png',
+            description: 'עץ הצפצפה רוקד ברוח'
+          },
+          'oak': {
+            id: 'oak',
+            name: 'עץ אלון',
+            image: 'https://i.imgur.com/ttMzfh5.png',
+            description: 'עץ האלון החזק והיציב'
+          },
+          'sycamore': {
+            id: 'sycamore',
+            name: 'עץ השיקמה',
+            image: 'https://i.imgur.com/PWXwrFQ.png',
+            description: 'עץ השיקמה העתיק והחכם'
+          }
+        };
+
+        const selectedTree = trees[treeId as keyof typeof trees];
+        
+        setTree(selectedTree);
+        setActivities(treeActivities);
+      } catch (error) {
+        console.error('Error fetching tree and activities:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTreeAndActivities();
+  }, [treeId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (!tree) {
+    return <div>העץ לא נמצא</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* כותרת ומידע על העץ */}
-      <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center gap-8">
-            <div className="relative w-48 h-48">
-              <Image
-                src={treeData.image}
-                alt={treeData.name}
-                fill
-                className="object-cover rounded-lg"
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="relative h-64">
+          <img
+            src={tree.image}
+            alt={tree.name}
+            className="w-full h-full object-cover"
               />
             </div>
-            <div>
-              <h1 className="text-4xl font-bold text-green-800 mb-4">{treeData.name}</h1>
-              <p className="text-xl text-gray-600">{treeData.description}</p>
-            </div>
-          </div>
+        <div className="p-6">
+          <h1 className="text-3xl font-bold text-green-800 mb-4">{tree.name}</h1>
+          <p className="text-gray-600 mb-6">{tree.description}</p>
         </div>
       </div>
 
-      {/* סינון לפי תחומי דעת */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex gap-4 mb-8">
-          <button
-            onClick={() => setSelectedSubject('')}
-            className={`px-4 py-2 rounded-full ${
-              !selectedSubject ? 'bg-green-600 text-white' : 'bg-gray-200'
-            }`}
-          >
-            הכל
-          </button>
-          {subjects.map(subject => (
-            <button
-              key={subject}
-              onClick={() => setSelectedSubject(subject)}
-              className={`px-4 py-2 rounded-full ${
-                selectedSubject === subject ? 'bg-green-600 text-white' : 'bg-gray-200'
-              }`}
-            >
-              {subject}
-            </button>
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold text-green-800 mb-6">פעילויות קשורות</h2>
+        {activities.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {activities.map((activity) => (
+              <ActivityCard key={activity.id} activity={activity} />
           ))}
         </div>
-
-        {/* רשימת הפעילויות */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredActivities.map((activity) => (
-            <Link 
-              key={activity.id} 
-              href={`/activities/${activity.id}`}
-              className="block"
-            >
-              <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold text-green-800">{activity.name}</h3>
-                  <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
-                    {activity.subject}
-                  </span>
-                </div>
-                <p className="text-gray-600 mb-4">{activity.description}</p>
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>{activity.duration}</span>
-                  <span>{activity.gradeLevel}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        ) : (
+          <p className="text-gray-600 text-center">אין עדיין פעילויות לעץ זה</p>
+        )}
       </div>
     </div>
   );

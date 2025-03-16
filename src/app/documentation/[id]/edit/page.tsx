@@ -4,30 +4,30 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Activity } from '@/types';
+import { Activity, Documentation } from '@/types';
 import DocumentationForm from '@/components/documentation/DocumentationForm';
-import { addDocumentation } from '@/lib/documentationService';
+import { updateDocumentation } from '@/lib/documentationService';
+import { getActivities } from '@/lib/activityService';
 
-const MAX_IMAGE_DIMENSION = 800; // pixels - reduced from 1200
+const MAX_IMAGE_DIMENSION = 1200; // pixels
 
-// Utility function to resize an image with better memory handling
+// Utility function to resize an image
 const resizeImage = (dataUrl: string): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    const img = document.createElement('img');
     img.onload = () => {
       let width = img.width;
       let height = img.height;
 
       // Calculate new dimensions while maintaining aspect ratio
       if (width > height && width > MAX_IMAGE_DIMENSION) {
-        height = Math.round((height * MAX_IMAGE_DIMENSION) / width);
+        height = (height * MAX_IMAGE_DIMENSION) / width;
         width = MAX_IMAGE_DIMENSION;
       } else if (height > MAX_IMAGE_DIMENSION) {
-        width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
+        width = (width * MAX_IMAGE_DIMENSION) / height;
         height = MAX_IMAGE_DIMENSION;
       }
 
-      // Create canvas with the new dimensions
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
@@ -38,24 +38,10 @@ const resizeImage = (dataUrl: string): Promise<string> => {
         return;
       }
 
-      // Draw image with better quality settings
-      ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Convert to JPEG with lower quality to reduce size
-      try {
-        const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-        
-        // Clean up
-        canvas.width = 0;
-        canvas.height = 0;
-        img.src = '';
-        
-        resolve(resizedDataUrl);
-      } catch (error) {
-        reject(error);
-      }
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
     };
 
     img.onerror = () => reject(new Error('Failed to load image'));
@@ -63,35 +49,47 @@ const resizeImage = (dataUrl: string): Promise<string> => {
   });
 };
 
-export default function NewDocumentation() {
+export default function EditDocumentation() {
   const router = useRouter();
   const params = useParams();
-  const [activity, setActivity] = useState<Activity | null>(null);
+  const [documentation, setDocumentation] = useState<Documentation | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchActivity = async () => {
-      const activityId = params?.id;
-      if (!activityId) {
-        console.error('No activity ID provided');
+    const fetchData = async () => {
+      const docId = params?.id;
+      if (!docId) {
+        console.error('No documentation ID provided');
         return;
       }
       
       try {
-        const activityDoc = await getDoc(doc(db, 'activities', activityId as string));
-        if (activityDoc.exists()) {
-          setActivity({ id: activityDoc.id, ...activityDoc.data() } as Activity);
+        // Fetch documentation
+        const docRef = doc(db, 'documentations', docId as string);
+        const docSnap = await getDoc(docRef);
+        
+        if (!docSnap.exists()) {
+          setError('התיעוד לא נמצא');
+          return;
         }
+
+        const docData = { id: docSnap.id, ...docSnap.data() } as Documentation;
+        setDocumentation(docData);
+
+        // Fetch activities
+        const activitiesData = await getActivities();
+        setActivities(activitiesData);
       } catch (error) {
-        console.error('Error fetching activity:', error);
-        setError('שגיאה בטעינת הפעילות');
+        console.error('Error fetching data:', error);
+        setError('שגיאה בטעינת הנתונים');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchActivity();
+    fetchData();
   }, [params?.id]);
 
   if (loading) {
@@ -102,15 +100,20 @@ export default function NewDocumentation() {
     return <div className="p-8 text-center text-red-600">{error}</div>;
   }
 
+  if (!documentation) {
+    return <div className="p-8 text-center">לא נמצא תיעוד</div>;
+  }
+
+  const activity = activities.find(a => a.id === documentation.activityId);
   if (!activity) {
-    return <div className="p-8 text-center">לא נמצאה פעילות</div>;
+    return <div className="p-8 text-center text-red-600">לא נמצאה פעילות מקושרת</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         <div className="bg-white rounded-xl shadow-md p-8">
-          <h1 className="text-3xl font-bold text-green-800 mb-6">תיעוד פעילות: {activity.name}</h1>
+          <h1 className="text-3xl font-bold text-green-800 mb-6">עריכת תיעוד: {documentation.title}</h1>
           
           <div className="mb-6 p-4 bg-blue-50 rounded-lg">
             <h2 className="text-lg font-semibold text-blue-800 mb-2">הנחיות להעלאת תמונות:</h2>
@@ -124,7 +127,7 @@ export default function NewDocumentation() {
           <DocumentationForm
             onSubmit={async (data) => {
               try {
-                if (!activity?.id || !data.className || !data.date || !data.title || !data.description) {
+                if (!documentation.id || !data.className || !data.date || !data.title || !data.description) {
                   throw new Error('חסרים פרטים חובה');
                 }
 
@@ -142,45 +145,33 @@ export default function NewDocumentation() {
                   );
                 }
 
-                // שמירת התיעוד בפיירסטור
-                const savedDoc = await addDocumentation({
-                  activityId: activity.id,
-                  className: data.className,
-                  date: new Date(data.date).toISOString(),
-                  title: data.title,
-                  description: data.description,
-                  skillIds: data.skillIds || [],
-                  images: resizedImages
+                // עדכון התיעוד בפיירסטור
+                await updateDocumentation(documentation.id, {
+                  ...data,
+                  images: resizedImages,
+                  date: new Date(data.date).toISOString()
                 });
 
-                alert('התיעוד נשמר בהצלחה!');
-                router.push(`/activities/${activity.id}`);
+                alert('התיעוד עודכן בהצלחה!');
+                router.push(`/activities/${documentation.activityId}`);
               } catch (error) {
-                console.error('Error saving documentation:', error);
+                console.error('Error updating documentation:', error);
                 if (error instanceof Error && error.message.includes('longer than')) {
                   setError('שגיאה: התמונות שנבחרו גדולות מדי. אנא הקטן את מספר התמונות או את גודלן.');
                 } else {
-                  setError('שגיאה בשמירת התיעוד');
+                  setError('שגיאה בעדכון התיעוד');
                 }
               }
             }}
             onCancel={() => router.back()}
             activities={[activity]}
-            skills={activity.skills.map((skill) => ({
-              id: skill,
+            skills={activity.skills.map((skill, index) => ({
+              id: index.toString(),
               name: skill,
               subject: activity.subject
             }))}
             classes={[]}
-            initialData={{
-              activityId: activity.id,
-              title: '',
-              className: '',
-              date: new Date().toISOString().split('T')[0],
-              description: '',
-              skillIds: [],
-              images: []
-            }}
+            initialData={documentation}
           />
 
           {error && (
@@ -192,4 +183,4 @@ export default function NewDocumentation() {
       </div>
     </div>
   );
-}
+} 

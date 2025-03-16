@@ -5,11 +5,14 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import ActivityForm from '@/components/activities/ActivityForm';
-import { Activity } from '@/types/activity';
+import { Activity } from '@/types';
 import { getAllActivities } from '@/lib/activityService';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Activity as FirebaseActivity } from '@/lib/types';
+import { ActivityCard } from '@/components/ActivityCard';
+import { getActivities } from '@/lib/activityService';
+import { useActivities } from '@/hooks/useActivities';
 
 const subjects = [
   {
@@ -126,24 +129,105 @@ interface FirebaseActivity {
   preparation: string;
 }
 
-export default async function ActivitiesPage() {
+const activitiesData: ActivitiesData = {
+  'olive-math': {
+    id: 'olive-math',
+    name: 'גילוי היקף העץ ועולם הזיתים',
+    subjects: ['מתמטיקה'],
+    treeIds: [],
+    ageGroup: 'ד-ו',
+    skillIds: [],
+    description: 'פעילות חקר מתמטית סביב עץ הזית',
+    materials: 'סרט מדידה, דף נייר, עיפרון',
+    preparation: 'להכין את דפי העבודה מראש',
+    expectedOutcomes: [
+      'התלמידים ילמדו למדוד היקף של עץ',
+      'התלמידים יבינו את הקשר בין היקף לקוטר'
+    ],
+    steps: ['מדידת היקף העץ', 'חישוב הקוטר', 'השוואה בין עצים שונים'],
+    duration: '45 דקות',
+    treeType: 'זית',
+    gradeLevel: 'כיתה ה',
+    skills: ['מדידה', 'חישוב', 'עבודת צוות'],
+    tags: ['פעילות חוץ', 'עבודת צוות', 'מדידה', 'חישובים', 'חקר'],
+    resources: {
+      teacherResources: [
+        {
+          type: 'teacher',
+          title: 'מדריך למורה - פעילות מדידת היקף',
+          url: '#',
+          description: 'מדריך מפורט למורה לביצוע הפעילות'
+        }
+      ],
+      studentResources: [],
+      worksheets: [
+        {
+          type: 'worksheet',
+          title: 'דף עבודה - רישום מדידות',
+          url: '#',
+          description: 'דף עבודה לתלמידים לרישום תוצאות המדידות'
+        }
+      ],
+      media: [
+        {
+          type: 'video',
+          title: 'סרטון הדרכה - מדידת היקף עץ',
+          url: '#',
+          description: 'סרטון המדגים את תהליך מדידת היקף העץ'
+        }
+      ],
+      relatedActivities: [
+        {
+          type: 'related',
+          title: 'חישוב שטח הצל של העץ',
+          url: '/activities/olive-math-shadow',
+          description: 'פעילות המשך לחישוב שטח הצל שהעץ מטיל'
+        }
+      ]
+    },
+    summary: 'פעילות חקר מתמטית המשלבת מדידות והיכרות עם עץ הזית',
+    image: '/images/olive-tree.jpg',
+    participants: '20-30 תלמידים',
+    objectives: ['הבנת מושג ההיקף', 'פיתוח מיומנויות מדידה', 'היכרות עם עץ הזית'],
+    location: 'חצר בית הספר',
+    assessment: 'הערכת דפי העבודה ותצפית על עבודת התלמידים',
+    extensions: ['חישוב נפח גזע העץ', 'מעקב אחר גדילת העץ לאורך זמן'],
+    safety: ['להיזהר מענפים נמוכים', 'לשמור על מרחק בטוח בין התלמידים'],
+    link: '/activities/olive-math'
+  }
+};
+
+export default function ActivitiesPage() {
+  const { activities, loading, error } = useActivities();
+
+  useEffect(() => {
+    // נקרא לפונקציה ישירות בדף
+    getActivities().then(activities => {
+      console.log('Activities from Firestore:', activities);
+    }).catch(error => {
+      console.error('Error fetching activities:', error);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500">שגיאה: {error}</div>;
+  }
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">פעילויות</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* כאן יבואו כרטיסי הפעילויות */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-xl font-semibold">גילוי היקף העץ ועולם הזיתים</h2>
-          <p className="text-gray-600 mt-2">פעילות חקר מתמטית סביב עץ הזית</p>
-          <div className="mt-2">
-            <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-sm mr-2">
-              מתמטיקה
-            </span>
-            <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-              כיתה ה
-            </span>
-          </div>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold text-center mb-8">פעילויות</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {activities.map((activity) => (
+          <ActivityCard key={activity.id} activity={activity} />
+        ))}
       </div>
     </div>
   );

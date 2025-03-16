@@ -1,39 +1,19 @@
 // src/lib/treeService.ts
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Tree } from '@/types/tree';
+import { Tree } from '@/types';
 import { addDoc, updateDoc, deleteDoc, orderBy } from 'firebase/firestore';
+import { api } from './api';
 
-export async function getAllTrees(): Promise<Tree[]> {
-  try {
-    const treesRef = collection(db, 'trees');
-    const snapshot = await getDocs(treesRef);
-    
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data() as Omit<Tree, 'id'>
-    }));
-  } catch (error) {
-    console.error('Error fetching trees:', error);
-    return [];
-  }
+export async function getTrees(): Promise<Tree[]> {
+  return api.trees.getAll();
 }
 
 export async function getTreeById(id: string): Promise<Tree | null> {
   try {
-    const treeRef = doc(db, 'trees', id);
-    const snapshot = await getDoc(treeRef);
-    
-    if (snapshot.exists()) {
-      return {
-        id: snapshot.id,
-        ...snapshot.data() as Omit<Tree, 'id'>
-      };
-    }
-    
-    return null;
+    return await api.trees.getById(id);
   } catch (error) {
-    console.error(`Error fetching tree with ID ${id}:`, error);
+    console.error('Error fetching tree:', error);
     return null;
   }
 }

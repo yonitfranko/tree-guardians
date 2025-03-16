@@ -3,6 +3,7 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -35,4 +36,22 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// הוספת בדיקת חיבור
+console.log('מנסה להתחבר לפיירבייס...');
+if (firebaseApp) {
+  console.log('החיבור לפיירבייס הצליח!');
+  console.log('מחובר לפרויקט:', firebaseConfig.projectId);
+} else {
+  console.error('נכשל החיבור לפיירבייס!');
+}
+
 export default firebaseApp;
+
+export async function testFirestore() {
+  const activitiesRef = collection(db, 'activities');
+  const snapshot = await getDocs(activitiesRef);
+  console.log('מספר הפעילויות:', snapshot.size);
+  snapshot.forEach(doc => {
+    console.log('פעילות:', doc.id, doc.data());
+  });
+}

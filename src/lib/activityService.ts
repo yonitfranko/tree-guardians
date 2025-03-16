@@ -12,7 +12,8 @@ import {
     orderBy 
   } from "firebase/firestore";
   import { db } from "@/lib/firebase";
-  import { Activity } from "@/types/activity";
+  import { Activity } from "@/types";
+  import { api } from './api';
   
   // קבלת כל הפעילויות
   export async function getAllActivities(): Promise<Activity[]> {
@@ -34,20 +35,17 @@ import {
   // קבלת פעילות לפי מזהה
   export async function getActivityById(id: string): Promise<Activity | null> {
     try {
-      const docRef = doc(db, "activities", id);
-      const docSnap = await getDoc(docRef);
+      const activityRef = doc(db, 'activities', id);
+      const activityDoc = await getDoc(activityRef);
       
-      if (docSnap.exists()) {
-        return {
-          id: docSnap.id,
-          ...docSnap.data() as Omit<Activity, "id">
-        };
+      if (!activityDoc.exists()) {
+        return null;
       }
       
-      return null;
+      return { id: activityDoc.id, ...activityDoc.data() } as Activity;
     } catch (error) {
-      console.error(`Error fetching activity with ID ${id}:`, error);
-      throw error;
+      console.error('שגיאה בטעינת פעילות:', error);
+      return null;
     }
   }
   
@@ -112,12 +110,56 @@ import {
   }
   
   // מחיקת פעילות
-  export async function deleteActivity(id: string): Promise<void> {
+  export async function deleteActivity(id: string): Promise<boolean> {
     try {
-      const activityRef = doc(db, "activities", id);
+      const activityRef = doc(db, 'activities', id);
+      
+      // בדיקה שהפעילות קיימת לפני המחיקה
+      const activityDoc = await getDoc(activityRef);
+      if (!activityDoc.exists()) {
+        console.error('הפעילות לא נמצאה');
+        return false;
+      }
+      
+      // מחיקת הפעילות
       await deleteDoc(activityRef);
+      console.log('הפעילות נמחקה בהצלחה');
+      return true;
     } catch (error) {
-      console.error(`Error deleting activity with ID ${id}:`, error);
-      throw error;
+      console.error('שגיאה במחיקת הפעילות:', error);
+      return false;
+    }
+  }
+
+  export async function getActivities(): Promise<Activity[]> {
+    // נוריד את ה-try-catch כרגע כדי לראות שגיאות אם יש
+    const activitiesRef = collection(db, 'activities');
+    const snapshot = await getDocs(activitiesRef);
+    
+    // נדפיס את הנתונים הגולמיים
+    console.log('Raw Firestore data:', {
+      collectionRef: activitiesRef,
+      snapshotSize: snapshot.size,
+      documents: snapshot.docs.map(doc => ({
+        id: doc.id,
+        data: doc.data()
+      }))
+    });
+
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Activity));
+  }
+
+  export async function getActivitiesByTreeId(treeId: string): Promise<Activity[]> {
+    try {
+      const activitiesRef = collection(db, 'activities');
+      const q = query(activitiesRef, where('treeType', '==', treeId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity));
+    } catch (error) {
+      console.error('שגיאה בטעינת פעילויות לפי עץ:', error);
+      return [];
     }
   }

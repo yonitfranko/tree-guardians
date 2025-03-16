@@ -1,4 +1,4 @@
-import { Activity } from '@/types/activity';
+import { Activity } from '@/types';
 
 interface Documentation {
   id: string;

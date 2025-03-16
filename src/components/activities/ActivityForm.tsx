@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Activity } from '@/types/activity';
+import { Activity } from '@/types';
 
 interface ActivityFormProps {
   initialData?: Partial<Activity>;
