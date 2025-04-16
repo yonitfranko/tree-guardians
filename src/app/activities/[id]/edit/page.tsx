@@ -279,6 +279,7 @@ export default function EditActivity() {
                   <option value="מתמטיקה">מתמטיקה</option>
                   <option value="מדעים">מדעים</option>
                   <option value="שפה">שפה</option>
+                  <option value="אנגלית">אנגלית</option>
                   <option value="אמנות">אמנות</option>
                   <option value="חברה">חברה</option>
                   <option value="היסטוריה">היסטוריה</option>
