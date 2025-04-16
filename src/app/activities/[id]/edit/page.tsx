@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Activity, Resource } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { SKILLS } from '@/lib/constants';
+import { SKILLS, CUSTOM_SKILLS } from '@/lib/constants';
 
 export default function EditActivity() {
   const params = useParams();
@@ -358,6 +358,50 @@ export default function EditActivity() {
                         </label>
                       ))}
                     </div>
+                    {category === 'OTHER' && (
+                      <div className="mt-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="הוסף מיומנות חדשה"
+                            className="flex-1 p-2 border rounded"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const input = e.target as HTMLInputElement;
+                                const newSkill = input.value.trim();
+                                if (newSkill && (activity.skills?.length ?? 0) < 5) {
+                                  setActivity({
+                                    ...activity,
+                                    skills: [...(activity.skills || []), newSkill]
+                                  });
+                                  CUSTOM_SKILLS.OTHER.skills.push(newSkill);
+                                  input.value = '';
+                                }
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            onClick={(e) => {
+                              const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                              const newSkill = input.value.trim();
+                              if (newSkill && (activity.skills?.length ?? 0) < 5) {
+                                setActivity({
+                                  ...activity,
+                                  skills: [...(activity.skills || []), newSkill]
+                                });
+                                CUSTOM_SKILLS.OTHER.skills.push(newSkill);
+                                input.value = '';
+                              }
+                            }}
+                          >
+                            הוסף
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
