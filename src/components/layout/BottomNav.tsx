@@ -8,7 +8,7 @@ const BottomNav: React.FC = () => {
   const pathname = usePathname();
   
   const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(`${path}/`);
+    return pathname === path || pathname?.startsWith(`${path}/`);
   };
   
   return (

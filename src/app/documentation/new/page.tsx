@@ -8,7 +8,7 @@ import DocumentationForm from '@/components/documentation/DocumentationForm';
 function NewDocumentationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activityId = searchParams.get('activityId');
+  const activityId = searchParams?.get('activityId');
   
   const [activities, setActivities] = useState([]);
   const [skills, setSkills] = useState([]);

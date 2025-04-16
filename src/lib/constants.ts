@@ -45,7 +45,7 @@ export const CORE_SKILLS = {
 export const CUSTOM_SKILLS = {
   OTHER: {
     title: 'מיומנויות נוספות',
-    skills: [] // יתמלא דינמית
+    skills: [] as string[] // יתמלא דינמית
   }
 };
 

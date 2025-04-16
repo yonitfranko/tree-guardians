@@ -9,7 +9,7 @@ import { Activity } from '@/types';
 import { getAllActivities } from '@/lib/activityService';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Activity as FirebaseActivity } from '@/lib/types';
+import { Activity as FirebaseActivity } from '@/lib/types';
 import { ActivityCard } from '@/components/ActivityCard';
 import { getActivities } from '@/lib/activityService';
 import { useActivities } from '@/hooks/useActivities';
@@ -67,6 +67,64 @@ interface Tree {
   description: string;
 }
 
+// הגדרת טיפוס ActivitiesData
+interface ActivitiesData {
+  [key: string]: {
+    id: string;
+    name: string;
+    subjects: string[];
+    treeIds: string[];
+    ageGroup: string;
+    skillIds: string[];
+    description: string;
+    materials: string;
+    preparation: string;
+    expectedOutcomes: string[];
+    steps: string[];
+    duration: string;
+    treeType: string;
+    gradeLevel: string;
+    skills: string[];
+    tags: string[];
+    resources: {
+      teacherResources: Array<{
+        type: string;
+        title: string;
+        url: string;
+        description: string;
+      }>;
+      studentResources: any[];
+      worksheets: Array<{
+        type: string;
+        title: string;
+        url: string;
+        description: string;
+      }>;
+      media: Array<{
+        type: string;
+        title: string;
+        url: string;
+        description: string;
+      }>;
+      relatedActivities: Array<{
+        type: string;
+        title: string;
+        url: string;
+        description: string;
+      }>;
+    };
+    summary: string;
+    image: string;
+    participants: string;
+    objectives: string[];
+    location: string;
+    assessment: string;
+    extensions: string[];
+    safety: string[];
+    link: string;
+  };
+}
+
 // מערך העצים
 const trees: Tree[] = [
   {
@@ -118,16 +176,6 @@ const trees: Tree[] = [
     description: 'עץ השיקמה העתיק והחכם'
   }
 ];
-
-// עדכון הממשק של FirebaseActivity
-interface FirebaseActivity {
-  id: string;
-  name: string;
-  subjects: string[];  // אם זה לא קיים בפיירסטור, אפשר להפוך לאופציונלי עם ?
-  summary: string;
-  participants: string;
-  preparation: string;
-}
 
 const activitiesData: ActivitiesData = {
   'olive-math': {

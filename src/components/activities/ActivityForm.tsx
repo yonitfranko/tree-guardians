@@ -22,7 +22,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     name: '',
     description: '',
     summary: '',
-    materials: '',
+    materials: [],
     preparation: '',
     participants: '',
     category: '',
@@ -36,7 +36,12 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'materials') {
+      // Split the materials string by commas and trim whitespace
+      setFormData(prev => ({ ...prev, [name]: value.split(',').map(item => item.trim()) }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
   
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,7 +120,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               name="materials"
               rows={3}
               className="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-              value={formData.materials || ''}
+              value={formData.materials?.join(', ') || ''}
               onChange={handleChange}
             ></textarea>
           </div>

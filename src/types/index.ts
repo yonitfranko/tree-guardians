@@ -10,6 +10,11 @@ export interface Activity {
   ageGroup?: string;
   duration: string;
   description: string;
+  summary?: string;
+  preparation?: string;
+  participants?: string;
+  category?: string;
+  favorite?: boolean;
   skills: string[];
   materials: string[];
   steps: string[];
@@ -29,6 +34,9 @@ export interface Activity {
   worksheets?: Resource[];
   isActive?: boolean;
   updatedAt?: Date;
+  skillIds?: string[];
+  treeIds?: string[];
+  image?: string;
 }
 
 export interface Resource {
