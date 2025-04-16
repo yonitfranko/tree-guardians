@@ -27,7 +27,8 @@ export default function NewActivity() {
       teacherResources: [],
       worksheets: [],
       media: [],
-      relatedActivities: []
+      relatedActivities: [],
+      externalLinks: []
     }
   });
 
@@ -88,6 +89,7 @@ export default function NewActivity() {
           worksheets: [],
           media: [],
           relatedActivities: [],
+          externalLinks: [],
           ...activity.resources,
           [resourceType]: [...currentResources, newResource as Resource]
         }
@@ -352,7 +354,8 @@ export default function NewActivity() {
                     <option value="teacherResources">📚 חומרי עזר למורה</option>
                     <option value="worksheets">📝 דפי עבודה</option>
                     <option value="media">🎥 סרטונים ומצגות</option>
-                    <option value="relatedActivities">🔗 קישורים נוספים</option>
+                    <option value="relatedActivities">🔗 פעילויות קשורות</option>
+                    <option value="externalLinks">🌐 קישורים חיצוניים</option>
                   </select>
                 </div>
 
@@ -408,7 +411,8 @@ export default function NewActivity() {
                       {type === 'teacherResources' && '📚 חומרי עזר למורה'}
                       {type === 'worksheets' && '📝 דפי עבודה'}
                       {type === 'media' && '🎥 סרטונים ומצגות'}
-                      {type === 'relatedActivities' && '🔗 פעילויות קשורות'}
+                      {type === 'relatedActivities' && '�� פעילויות קשורות'}
+                      {type === 'externalLinks' && '🌐 קישורים חיצוניים'}
                     </h4>
                     <ul className="space-y-2">
                       {resources.map((resource, index) => (
@@ -426,6 +430,7 @@ export default function NewActivity() {
                                   worksheets: [],
                                   media: [],
                                   relatedActivities: [],
+                                  externalLinks: [],
                                   ...activity.resources,
                                   [type]: updatedResources
                                 }

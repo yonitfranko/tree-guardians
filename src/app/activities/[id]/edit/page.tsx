@@ -29,7 +29,8 @@ export default function EditActivity() {
       media: [],
       teacherResources: [],
       relatedActivities: [],
-      worksheets: []
+      worksheets: [],
+      externalLinks: []
     },
     title: '',
     domain: '',
@@ -79,7 +80,8 @@ export default function EditActivity() {
             media: data.media || data.resources?.media || [],
             teacherResources: data.teacherResources || data.resources?.teacherResources || [],
             relatedActivities: data.relatedActivities || data.resources?.relatedActivities || [],
-            worksheets: data.worksheets || data.resources?.worksheets || []
+            worksheets: data.worksheets || data.resources?.worksheets || [],
+            externalLinks: data.resources?.externalLinks || []
           };
           
           setActivity({
@@ -129,18 +131,19 @@ export default function EditActivity() {
         expectedOutcomes: activityData.expectedOutcomes || [],
         expectedResults: activityData.expectedOutcomes || [],
         tags: activityData.tags || [],
-        // שמירת המשאבים בשני המקומות לתאימות לאחור
         resources: {
           media: activityData.resources?.media || [],
           teacherResources: activityData.resources?.teacherResources || [],
           relatedActivities: activityData.resources?.relatedActivities || [],
-          worksheets: activityData.resources?.worksheets || []
+          worksheets: activityData.resources?.worksheets || [],
+          externalLinks: activityData.resources?.externalLinks || []
         },
-        // שמירת המשאבים גם בשדות הישירים
+        // שמירת המשאבים גם בשדות הישירים לתאימות לאחור
         media: activityData.resources?.media || [],
         teacherResources: activityData.resources?.teacherResources || [],
         relatedActivities: activityData.resources?.relatedActivities || [],
         worksheets: activityData.resources?.worksheets || [],
+        externalLinks: activityData.resources?.externalLinks || [],
         updatedAt: new Date(),
         isActive: true
       };
@@ -175,10 +178,7 @@ export default function EditActivity() {
     };
     
     const updatedResources = {
-      media: activity.resources?.media || [],
-      teacherResources: activity.resources?.teacherResources || [],
-      relatedActivities: activity.resources?.relatedActivities || [],
-      worksheets: activity.resources?.worksheets || [],
+      ...activity.resources,
       [resourceType]: [
         ...(activity.resources?.[resourceType] || []),
         newResourceItem
@@ -190,9 +190,8 @@ export default function EditActivity() {
     try {
       const activityRef = doc(db, 'activities', activity.id);
       
-      // שמירת המשאב החדש בשני המקומות
       const updateData = {
-        [`resources.${resourceType}`]: updatedResources[resourceType],
+        resources: updatedResources,
         [resourceType]: updatedResources[resourceType],
         updatedAt: new Date()
       };
@@ -202,14 +201,12 @@ export default function EditActivity() {
       await updateDoc(activityRef, updateData);
       console.log('Resource saved successfully');
       
-      // עדכון הסטייט המקומי
       setActivity(prevActivity => ({
         ...prevActivity,
         resources: updatedResources,
         [resourceType]: updatedResources[resourceType]
       }));
 
-      // איפוס הטופס
       setNewResource({
         type: 'teacherResources',
         title: '',
@@ -432,7 +429,8 @@ export default function EditActivity() {
                     <option value="teacherResources">📚 חומרי עזר למורה</option>
                     <option value="worksheets">📝 דפי עבודה</option>
                     <option value="media">🎥 סרטונים ומצגות</option>
-                    <option value="relatedActivities">🔗 קישורים נוספים</option>
+                    <option value="relatedActivities">🔗 פעילויות קשורות</option>
+                    <option value="externalLinks">🌐 קישורים חיצוניים</option>
                   </select>
                 </div>
 
@@ -492,7 +490,8 @@ export default function EditActivity() {
                       {type === 'teacherResources' && '📚 חומרי עזר למורה'}
                       {type === 'worksheets' && '📝 דפי עבודה'}
                       {type === 'media' && '🎥 סרטונים ומצגות'}
-                      {type === 'relatedActivities' && '🔗 קישורים נוספים'}
+                      {type === 'relatedActivities' && '🔗 פעילויות קשורות'}
+                      {type === 'externalLinks' && '🌐 קישורים חיצוניים'}
                     </h4>
                     <ul className="space-y-3">
                       {resources.map((resource, index) => (
@@ -522,6 +521,7 @@ export default function EditActivity() {
                                   teacherResources: activity.resources?.teacherResources || [],
                                   relatedActivities: activity.resources?.relatedActivities || [],
                                   worksheets: activity.resources?.worksheets || [],
+                                  externalLinks: activity.resources?.externalLinks || [],
                                   [type]: updatedResources
                                 }
                               });

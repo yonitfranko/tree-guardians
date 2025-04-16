@@ -21,6 +21,7 @@ export interface Activity {
     teacherResources: Resource[];
     relatedActivities: Resource[];
     worksheets: Resource[];
+    externalLinks: Resource[];
   };
   media?: Resource[];
   teacherResources?: Resource[];
@@ -31,7 +32,7 @@ export interface Activity {
 }
 
 export interface Resource {
-  type: 'teacherResources' | 'worksheets' | 'media' | 'relatedActivities';
+  type: 'teacherResources' | 'worksheets' | 'media' | 'relatedActivities' | 'externalLinks';
   title: string;
   url: string;
   description?: string;
@@ -57,6 +58,11 @@ export interface Documentation {
   skillIds: string[];
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface DocumentationFormData extends Omit<Documentation, 'id'> {
+  className: string;
+  skillIds: string[];
 }
 
 // טיפוסים הקשורים לעצים

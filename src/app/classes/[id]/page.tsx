@@ -6,6 +6,7 @@ import Link from 'next/link';
 import SkillsProgress from '@/components/SkillsProgress';
 import { getClassDocumentations, deleteDocumentation } from '@/lib/documentationService';
 import { getClass, Class } from '@/lib/classService';
+import { convertToEnglishClass, convertToHebrewClass } from '@/lib/utils';
 import type { Documentation } from '@/types';
 
 // נתונים לדוגמה - בהמשך יגיעו מ-Firebase
@@ -54,13 +55,16 @@ export default function ClassPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [classData, docs] = await Promise.all([
-          getClass(decodedId),
-          getClassDocumentations(decodedId)
-        ]);
-        
+        // First get the class data
+        const classData = await getClass(decodedId);
         setClassInfo(classData);
-        setDocumentations(docs);
+        
+        if (classData) {
+          // Use the standardized class ID to fetch documentations
+          const docs = await getClassDocumentations(classData.id);
+          console.log('Fetched documentations:', docs);
+          setDocumentations(docs);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

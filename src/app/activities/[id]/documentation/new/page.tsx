@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import { Activity } from '@/types';
 import DocumentationForm from '@/components/documentation/DocumentationForm';
 import { addDocumentation } from '@/lib/documentationService';
+import { convertToEnglishClass } from '@/lib/utils';
 
 const MAX_IMAGE_DIMENSION = 800; // pixels - reduced from 1200
 
@@ -143,22 +144,29 @@ export default function NewDocumentation() {
                 }
 
                 // שמירת התיעוד בפיירסטור
-                const savedDoc = await addDocumentation({
+                await addDocumentation({
                   activityId: activity.id,
-                  className: data.className,
+                  className: convertToEnglishClass(data.className),
                   date: new Date(data.date).toISOString(),
                   title: data.title,
                   description: data.description,
                   skillIds: data.skillIds || [],
-                  images: resizedImages
+                  images: resizedImages,
+                  teacherName: "Default Teacher", // You might want to get this from user context
+                  createdAt: new Date(),
+                  updatedAt: new Date()
                 });
 
+                console.log('Documentation saved successfully');
                 alert('התיעוד נשמר בהצלחה!');
+                router.refresh();
                 router.push(`/activities/${activity.id}`);
               } catch (error) {
                 console.error('Error saving documentation:', error);
                 if (error instanceof Error && error.message.includes('longer than')) {
                   setError('שגיאה: התמונות שנבחרו גדולות מדי. אנא הקטן את מספר התמונות או את גודלן.');
+                } else if (error instanceof Error) {
+                  setError(`שגיאה בשמירת התיעוד: ${error.message}`);
                 } else {
                   setError('שגיאה בשמירת התיעוד');
                 }

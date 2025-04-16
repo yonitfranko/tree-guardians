@@ -27,7 +27,8 @@ export default function ActivityPage() {
       teacherResources: [],
       worksheets: [],
       media: [],
-      relatedActivities: []
+      relatedActivities: [],
+      externalLinks: []
     }
   });
   const [loading, setLoading] = useState(true);
@@ -49,7 +50,8 @@ export default function ActivityPage() {
             teacherResources: data.teacherResources || data.resources?.teacherResources || [],
             worksheets: data.worksheets || data.resources?.worksheets || [],
             media: data.media || data.resources?.media || [],
-            relatedActivities: data.relatedActivities || data.resources?.relatedActivities || []
+            relatedActivities: data.relatedActivities || data.resources?.relatedActivities || [],
+            externalLinks: data.resources?.externalLinks || []
           };
           
           console.log('Merged resources:', mergedResources);
@@ -183,8 +185,8 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">ציוד נדרש</h2>
             <ul className="list-disc list-inside space-y-1">
-              {activity.materials.map((material) => (
-                <li key={material}>{material}</li>
+              {activity.materials.map((material, index) => (
+                <li key={`material-${index}`}>{material}</li>
               ))}
             </ul>
           </div>
@@ -195,8 +197,8 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">שלבי הפעילות</h2>
             <ol className="list-decimal list-inside space-y-2">
-              {activity.steps.map((step) => (
-                <li key={step}>{step}</li>
+              {activity.steps.map((step, index) => (
+                <li key={`step-${index}`}>{step}</li>
               ))}
             </ol>
           </div>
@@ -207,8 +209,8 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">תוצרים מצופים</h2>
             <ul className="list-disc list-inside space-y-1">
-              {activity.expectedOutcomes.map((outcome) => (
-                <li key={outcome}>{outcome}</li>
+              {activity.expectedOutcomes.map((outcome, index) => (
+                <li key={`outcome-${index}`}>{outcome}</li>
               ))}
             </ul>
           </div>
@@ -314,10 +316,34 @@ export default function ActivityPage() {
               </div>
             )}
 
+            {activity.resources?.externalLinks && activity.resources.externalLinks.length > 0 && (
+              <div>
+                <h3 className="font-medium text-lg mb-3">🌐 קישורים חיצוניים</h3>
+                <div className="space-y-2">
+                  {activity.resources.externalLinks.map((link, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        {link.title || 'קישור חיצוני'}
+                      </a>
+                      {link.description && (
+                        <span className="text-gray-600">- {link.description}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {(!activity.resources?.teacherResources?.length &&
               !activity.resources?.worksheets?.length &&
               !activity.resources?.media?.length &&
-              !activity.resources?.relatedActivities?.length) && (
+              !activity.resources?.relatedActivities?.length &&
+              !activity.resources?.externalLinks?.length) && (
               <p className="text-gray-500 text-center py-4">אין משאבים זמינים</p>
             )}
           </div>
@@ -328,9 +354,9 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">תגיות</h2>
             <div className="flex flex-wrap gap-2">
-              {activity.tags.map((tag) => (
+              {activity.tags.map((tag, index) => (
                 <span
-                  key={tag}
+                  key={`tag-${index}`}
                   className="px-3 py-1 bg-gray-100 text-gray-800 rounded"
                 >
                   {tag}
