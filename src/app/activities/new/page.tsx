@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { SKILLS } from '@/lib/constants';
+import { SKILLS, DEFAULT_DOMAINS } from '@/lib/constants';
 import { addActivity } from '@/lib/activityService';
 import type { Activity, Resource } from '@/types';
 
@@ -175,6 +175,9 @@ export default function NewActivity() {
                   <option value="מתמטיקה">מתמטיקה</option>
                   <option value="מדעים">מדעים</option>
                   <option value="שפה">שפה</option>
+                  <option value="אנגלית">אנגלית</option>
+                  <option value="היסטוריה">היסטוריה</option>
+                  <option value="גיאוגרפיה">גיאוגרפיה</option>
                   <option value="אמנות">אמנות</option>
                   <option value="חברה">חברה</option>
                 </select>
@@ -411,7 +414,7 @@ export default function NewActivity() {
                       {type === 'teacherResources' && '📚 חומרי עזר למורה'}
                       {type === 'worksheets' && '📝 דפי עבודה'}
                       {type === 'media' && '🎥 סרטונים ומצגות'}
-                      {type === 'relatedActivities' && '�� פעילויות קשורות'}
+                      {type === 'relatedActivities' && '🔗 פעילויות קשורות'}
                       {type === 'externalLinks' && '🌐 קישורים חיצוניים'}
                     </h4>
                     <ul className="space-y-2">
