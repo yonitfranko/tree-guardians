@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { SKILLS, DEFAULT_DOMAINS } from '@/lib/constants';
+import { SKILLS } from '@/lib/constants';
 import { addActivity } from '@/lib/activityService';
 import type { Activity, Resource } from '@/types';
 
