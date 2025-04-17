@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 // src/lib/firebase.ts
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { collection, getDocs } from "firebase/firestore";
@@ -16,44 +16,55 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase only once in browser environment
-// (prevent double initialization during Hot Reload)
-const firebaseApp = !getApps().length 
-  ? initializeApp(firebaseConfig) 
-  : getApps()[0];
+// Initialize Firebase
+let firebaseApp;
+if (!getApps().length) {
+  firebaseApp = initializeApp(firebaseConfig);
+} else {
+  firebaseApp = getApp();
+}
 
 // Export services we'll use
 export const db = getFirestore(firebaseApp);
 export const auth = getAuth(firebaseApp);
 
-// Initialize Analytics only on client side
-if (typeof window !== 'undefined') {
+// Initialize Analytics only on client side and only once
+let analyticsInitialized = false;
+if (typeof window !== 'undefined' && !analyticsInitialized) {
+  analyticsInitialized = true;
   // Import dynamically to avoid server-side issues
   import('firebase/analytics').then(({ getAnalytics }) => {
-    getAnalytics(firebaseApp);
+    try {
+      if (firebaseApp) {
+        getAnalytics(firebaseApp);
+      }
+    } catch (error) {
+      console.error('Analytics initialization error:', error);
+    }
   }).catch(error => {
     console.error('Analytics failed to load:', error);
   });
 }
 
-// Connection check
-if (process.env.NODE_ENV !== 'production') {
-  console.log('Trying to connect to Firebase...');
-  if (firebaseApp) {
-    console.log('Firebase connection successful!');
-    console.log('Connected to project:', firebaseConfig.projectId);
-  } else {
-    console.error('Firebase connection failed!');
-  }
+// Connection check (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('Firebase connection status:', {
+    initialized: !!firebaseApp,
+    projectId: firebaseConfig.projectId
+  });
 }
 
 export default firebaseApp;
 
 export async function testFirestore() {
-  const activitiesRef = collection(db, 'activities');
-  const snapshot = await getDocs(activitiesRef);
-  console.log('מספר הפעילויות:', snapshot.size);
-  snapshot.forEach(doc => {
-    console.log('פעילות:', doc.id, doc.data());
-  });
+  try {
+    const activitiesRef = collection(db, 'activities');
+    const snapshot = await getDocs(activitiesRef);
+    console.log('מספר הפעילויות:', snapshot.size);
+    snapshot.forEach(doc => {
+      console.log('פעילות:', doc.id, doc.data());
+    });
+  } catch (error) {
+    console.error('Error testing Firestore:', error);
+  }
 }
