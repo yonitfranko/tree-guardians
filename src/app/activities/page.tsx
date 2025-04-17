@@ -248,24 +248,50 @@ const activitiesData: ActivitiesData = {
 };
 
 export default function ActivitiesPage() {
-  const { activities, loading, error } = useActivities();
-  const [filteredActivities, setFilteredActivities] = useState([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState('');
-  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchActivities = async () => {
       try {
         const fetchedActivities = await getActivities();
+        setActivities(fetchedActivities);
         setFilteredActivities(fetchedActivities);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching activities:', error);
+        setLoading(false);
       }
     };
 
     fetchActivities();
   }, []);
+
+  useEffect(() => {
+    if (!activities) return;
+
+    const filtered = activities.filter(activity => {
+      // Text search
+      const textMatch = !searchTerm || 
+        activity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        activity.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Age group filter
+      const ageGroupMatch = !selectedAgeGroup || activity.ageGroup === selectedAgeGroup;
+
+      // Skills filter
+      const skillsMatch = selectedSkills.length === 0 || 
+        selectedSkills.every(skill => activity.skills.includes(skill));
+
+      return textMatch && ageGroupMatch && skillsMatch;
+    });
+
+    setFilteredActivities(filtered);
+  }, [activities, searchTerm, selectedAgeGroup, selectedSkills]);
 
   const handleSkillToggle = (skill: string) => {
     setSelectedSkills(prev => 
@@ -277,10 +303,6 @@ export default function ActivitiesPage() {
 
   if (loading) {
     return <div className="text-center p-8">טוען פעילויות...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center text-red-500">שגיאה: {error}</div>;
   }
 
   const allSkills = [...CORE_SKILLS, ...CUSTOM_SKILLS];
