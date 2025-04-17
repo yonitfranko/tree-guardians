@@ -295,9 +295,10 @@ export default function ActivitiesPage() {
         activity.tags?.some(tag => tag.toLowerCase().includes(searchText));
 
       // Age group filter - check if activity's age group matches the selected group
+      const activityGrade = activity.ageGroup || '';
       const ageGroupMatch = !selectedAgeGroup || 
-        activity.ageGroup === selectedAgeGroup ||
-        GRADE_TO_GROUP[activity.ageGroup] === selectedAgeGroup;
+        activityGrade === selectedAgeGroup ||
+        GRADE_TO_GROUP[activityGrade] === selectedAgeGroup;
 
       // Skills filter
       const skillsMatch = selectedSkills.length === 0 || 
