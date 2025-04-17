@@ -9,7 +9,7 @@ import type { Activity, Resource, Skill } from '@/types';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-const MAIN_CATEGORIES = ['חשיבה', 'למידה', 'אישי', 'חברתי', 'מיומנויות נוספות'] as const;
+const SUBCATEGORIES = ['חשיבה', 'תקשורת', 'יצירתיות', 'שיתוף פעולה'];
 
 export default function NewActivity() {
   const router = useRouter();
@@ -74,12 +74,8 @@ export default function NewActivity() {
     }
   };
 
-  const getSkillsByCategory = (category: string) => {
-    return skills.filter(skill => skill.category === category);
-  };
-
-  const getSkillsByMainCategory = (mainCategory: string) => {
-    return skills.filter(skill => skill.mainCategory === mainCategory);
+  const getSkillsBySubcategory = (subcategory: string) => {
+    return skills.filter(skill => skill.subcategory === subcategory);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -259,14 +255,14 @@ export default function NewActivity() {
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-4">מיומנויות (עד 5)</h2>
               
-              {MAIN_CATEGORIES.map(mainCategory => {
-                const categorySkills = skills.filter(skill => skill.mainCategory === mainCategory);
+              {SUBCATEGORIES.map(subcategory => {
+                const categorySkills = getSkillsBySubcategory(subcategory);
                 if (categorySkills.length === 0) return null;
 
                 return (
-                  <div key={mainCategory} className="mb-6">
+                  <div key={subcategory} className="mb-6">
                     <div className="flex items-center mb-2">
-                      <h3 className="text-lg font-bold text-gray-800">{mainCategory}</h3>
+                      <h3 className="text-lg font-bold text-gray-800">{subcategory}</h3>
                       <div className="flex-1 border-b border-gray-300 ml-4"></div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
