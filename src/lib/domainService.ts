@@ -1,4 +1,4 @@
-import { db } from '@/firebase/config';
+import { db } from '@/lib/firebase';
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Domain } from './constants';
 

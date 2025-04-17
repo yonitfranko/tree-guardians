@@ -30,19 +30,27 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
   return (
     <Link href={`/activities/${activity.id}`}>
       <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
-        <div className="flex items-center mb-2">
-          {domain && (
-            <span className="text-2xl mr-2">{domain.icon}</span>
-          )}
+        <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold">{activity.name}</h3>
-        </div>
-        <p className="text-gray-600 text-sm">{activity.description}</p>
-        <div className="mt-2 flex flex-wrap gap-1">
-          {activity.skills.map((skill, index) => (
-            <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-              {skill}
+          {activity.subject && (
+            <span className="text-sm bg-pink-100 text-pink-800 px-3 py-1 rounded-full flex items-center">
+              {domain?.icon && <span className="ml-1">{domain.icon}</span>}
+              {activity.subject}
             </span>
-          ))}
+          )}
+        </div>
+        <p className="text-gray-600 text-sm mb-2">{activity.description}</p>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-500">
+            {activity.gradeLevel}
+          </span>
+          <div className="flex flex-wrap gap-1 justify-end">
+            {activity.skills.map((skill, index) => (
+              <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                {skill}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </Link>
