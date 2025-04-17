@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Activity } from '@/types';
+import { Activity, Skill } from '@/types';
 import { db } from '@/lib/firebase';
-import { collection, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
 import { DOMAINS } from '@/lib/constants';
 import { getActivities } from '@/lib/activityService';
@@ -15,6 +15,24 @@ export default function ActivityPage() {
   const [activity, setActivity] = useState<Activity | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [skills, setSkills] = useState<Skill[]>([]);
+
+  useEffect(() => {
+    const loadSkills = async () => {
+      try {
+        const skillsSnapshot = await getDocs(collection(db, 'skills'));
+        const skillsData = skillsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Skill[];
+        setSkills(skillsData);
+      } catch (error) {
+        console.error('שגיאה בטעינת מיומנויות:', error);
+      }
+    };
+
+    loadSkills();
+  }, []);
 
   useEffect(() => {
     const fetchActivity = async () => {
@@ -130,14 +148,20 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">מיומנויות</h2>
             <div className="flex flex-wrap gap-2">
-              {activity.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="px-3 py-1 bg-blue-100 text-blue-800 rounded"
-                >
-                  {skill}
-                </span>
-              ))}
+              {activity.skills.map((skillId) => {
+                const skill = skills.find(s => s.id === skillId);
+                if (!skill) return null;
+                
+                return (
+                  <span
+                    key={skillId}
+                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded flex items-center gap-2"
+                  >
+                    <span className="font-medium">{skill.name}</span>
+                    <span className="text-sm text-blue-600">({skill.subcategory})</span>
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
