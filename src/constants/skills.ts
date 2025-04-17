@@ -1,14 +1,15 @@
-export const CORE_SKILLS = [
+export const MAIN_SKILLS = [
   'חשיבה ביקורתית',
   'עבודת צוות',
   'פתרון בעיות',
-  'תקשורת',
-  'יצירתיות',
-  'חשיבה מדעית',
-  'אוריינות דיגיטלית'
+  'חשיבה מדעית'
 ] as const;
 
-export const CUSTOM_SKILLS = [
+// מיומנויות נוספות שיכולות להתעדכן דינמית
+export const ADDITIONAL_SKILLS = [
+  'תקשורת',
+  'יצירתיות',
+  'אוריינות דיגיטלית',
   'מדידה',
   'תצפית',
   'איסוף נתונים',
@@ -20,6 +21,6 @@ export const CUSTOM_SKILLS = [
   'שימוש בכלי מדידה'
 ] as const;
 
-export type CoreSkill = typeof CORE_SKILLS[number];
-export type CustomSkill = typeof CUSTOM_SKILLS[number];
-export type Skill = CoreSkill | CustomSkill; 
+export type MainSkill = typeof MAIN_SKILLS[number];
+export type AdditionalSkill = typeof ADDITIONAL_SKILLS[number];
+export type Skill = MainSkill | AdditionalSkill; 

@@ -13,8 +13,8 @@ import { Activity as FirebaseActivity } from '@/lib/types';
 import { ActivityCard } from '@/components/ActivityCard';
 import { getActivities } from '@/lib/activityService';
 import { useActivities } from '@/hooks/useActivities';
-import { AGE_GROUPS } from '@/constants/ageGroups';
-import { CORE_SKILLS, CUSTOM_SKILLS } from '@/constants/skills';
+import { AGE_GROUPS, GRADE_TO_GROUP } from '@/constants/ageGroups';
+import { MAIN_SKILLS, ADDITIONAL_SKILLS } from '@/constants/skills';
 
 const subjects = [
   {
@@ -254,13 +254,25 @@ export default function ActivitiesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [dynamicSkills, setDynamicSkills] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchActivities = async () => {
       try {
         const fetchedActivities = await getActivities();
         setActivities(fetchedActivities);
-        setFilteredActivities(fetchedActivities);
+        
+        // איסוף כל המיומנויות הייחודיות מהפעילויות
+        const uniqueSkills = new Set<string>();
+        fetchedActivities.forEach(activity => {
+          activity.skills.forEach(skill => {
+            if (!MAIN_SKILLS.includes(skill) && !ADDITIONAL_SKILLS.includes(skill)) {
+              uniqueSkills.add(skill);
+            }
+          });
+        });
+        setDynamicSkills(Array.from(uniqueSkills));
+        
         setLoading(false);
       } catch (error) {
         console.error('Error fetching activities:', error);
@@ -275,13 +287,17 @@ export default function ActivitiesPage() {
     if (!activities) return;
 
     const filtered = activities.filter(activity => {
-      // Text search
-      const textMatch = !searchTerm || 
-        activity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.description.toLowerCase().includes(searchTerm.toLowerCase());
+      // Text search in name, description, and tags
+      const searchText = searchTerm.toLowerCase();
+      const textMatch = !searchText || 
+        activity.name.toLowerCase().includes(searchText) ||
+        activity.description.toLowerCase().includes(searchText) ||
+        activity.tags?.some(tag => tag.toLowerCase().includes(searchText));
 
-      // Age group filter
-      const ageGroupMatch = !selectedAgeGroup || activity.ageGroup === selectedAgeGroup;
+      // Age group filter - check if activity's age group matches the selected group
+      const ageGroupMatch = !selectedAgeGroup || 
+        activity.ageGroup === selectedAgeGroup ||
+        GRADE_TO_GROUP[activity.ageGroup] === selectedAgeGroup;
 
       // Skills filter
       const skillsMatch = selectedSkills.length === 0 || 
@@ -305,8 +321,6 @@ export default function ActivitiesPage() {
     return <div className="text-center p-8">טוען פעילויות...</div>;
   }
 
-  const allSkills = [...CORE_SKILLS, ...CUSTOM_SKILLS];
-
   return (
     <div className="container mx-auto p-4">
       <div className="mb-8 space-y-4">
@@ -314,7 +328,7 @@ export default function ActivitiesPage() {
         <div>
           <input
             type="text"
-            placeholder="חפש פעילות לפי שם או תיאור..."
+            placeholder="חפש פעילות לפי שם, תיאור או תגיות..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full p-2 border rounded-lg text-right"
@@ -335,11 +349,31 @@ export default function ActivitiesPage() {
           </select>
         </div>
 
-        {/* Skills filter */}
+        {/* Main Skills */}
         <div>
-          <h3 className="text-lg font-semibold mb-2 text-right">סינון לפי מיומנויות:</h3>
+          <h3 className="text-lg font-semibold mb-2 text-right">מיומנויות ראשיות:</h3>
           <div className="flex flex-wrap gap-2 justify-end">
-            {allSkills.map(skill => (
+            {MAIN_SKILLS.map(skill => (
+              <button
+                key={skill}
+                onClick={() => handleSkillToggle(skill)}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  selectedSkills.includes(skill)
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                {skill}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Additional Skills */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2 text-right">מיומנויות נוספות:</h3>
+          <div className="flex flex-wrap gap-2 justify-end">
+            {[...ADDITIONAL_SKILLS, ...dynamicSkills].map(skill => (
               <button
                 key={skill}
                 onClick={() => handleSkillToggle(skill)}
@@ -372,18 +406,36 @@ export default function ActivitiesPage() {
                 <h2 className="text-xl font-bold mb-2 text-right">{activity.name}</h2>
                 <p className="text-gray-600 mb-2 text-right">{activity.description}</p>
                 <div className="text-right">
-                  <span className="text-sm text-gray-500">{activity.ageGroup}</span>
+                  <span className="text-sm text-gray-500">
+                    {GRADE_TO_GROUP[activity.ageGroup] || activity.ageGroup}
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2 justify-end">
                   {activity.skills.map(skill => (
                     <span 
                       key={skill}
-                      className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full"
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        MAIN_SKILLS.includes(skill)
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}
                     >
                       {skill}
                     </span>
                   ))}
                 </div>
+                {activity.tags && activity.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2 justify-end">
+                    {activity.tags.map(tag => (
+                      <span 
+                        key={tag}
+                        className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </Link>
           ))}
