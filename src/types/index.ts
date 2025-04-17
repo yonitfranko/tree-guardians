@@ -86,8 +86,7 @@ export interface Tree {
 export interface Skill {
   id: string;
   name: string;
-  mainCategory: 'חשיבה' | 'למידה' | 'אישי' | 'חברתי' | 'מיומנויות נוספות';
-  category: string;
-  createdAt: string;
-  updatedAt: string;
+  category: 'CORE' | 'CUSTOM' | 'OTHER';
+  subcategory: string;
+  createdAt?: Date;
 }
