@@ -13,6 +13,8 @@ import { Activity as FirebaseActivity } from '@/lib/types';
 import { ActivityCard } from '@/components/ActivityCard';
 import { getActivities } from '@/lib/activityService';
 import { useActivities } from '@/hooks/useActivities';
+import { AGE_GROUPS } from '@/constants/ageGroups';
+import { CORE_SKILLS, CUSTOM_SKILLS } from '@/constants/skills';
 
 const subjects = [
   {
@@ -247,36 +249,124 @@ const activitiesData: ActivitiesData = {
 
 export default function ActivitiesPage() {
   const { activities, loading, error } = useActivities();
+  const [filteredActivities, setFilteredActivities] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState('');
+  const [selectedSkills, setSelectedSkills] = useState([]);
 
   useEffect(() => {
-    // נקרא לפונקציה ישירות בדף
-    getActivities().then(activities => {
-      console.log('Activities from Firestore:', activities);
-    }).catch(error => {
-      console.error('Error fetching activities:', error);
-    });
+    const fetchActivities = async () => {
+      try {
+        const fetchedActivities = await getActivities();
+        setFilteredActivities(fetchedActivities);
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+      }
+    };
+
+    fetchActivities();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+  const handleSkillToggle = (skill: string) => {
+    setSelectedSkills(prev => 
+      prev.includes(skill) 
+        ? prev.filter(s => s !== skill)
+        : [...prev, skill]
     );
+  };
+
+  if (loading) {
+    return <div className="text-center p-8">טוען פעילויות...</div>;
   }
 
   if (error) {
     return <div className="text-center text-red-500">שגיאה: {error}</div>;
   }
 
+  const allSkills = [...CORE_SKILLS, ...CUSTOM_SKILLS];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-center mb-8">פעילויות</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activities.map((activity) => (
-          <ActivityCard key={activity.id} activity={activity} />
-        ))}
+    <div className="container mx-auto p-4">
+      <div className="mb-8 space-y-4">
+        {/* Search input */}
+        <div>
+          <input
+            type="text"
+            placeholder="חפש פעילות לפי שם או תיאור..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2 border rounded-lg text-right"
+          />
+        </div>
+
+        {/* Age group filter */}
+        <div>
+          <select
+            value={selectedAgeGroup}
+            onChange={(e) => setSelectedAgeGroup(e.target.value)}
+            className="w-full p-2 border rounded-lg text-right"
+          >
+            <option value="">כל קבוצות הגיל</option>
+            {AGE_GROUPS.map(group => (
+              <option key={group} value={group}>{group}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Skills filter */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2 text-right">סינון לפי מיומנויות:</h3>
+          <div className="flex flex-wrap gap-2 justify-end">
+            {allSkills.map(skill => (
+              <button
+                key={skill}
+                onClick={() => handleSkillToggle(skill)}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  selectedSkills.includes(skill)
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                {skill}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {filteredActivities.length === 0 ? (
+        <div className="text-center text-gray-500">
+          לא נמצאו פעילויות התואמות את החיפוש
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredActivities.map((activity) => (
+            <Link 
+              href={`/activities/${activity.id}`}
+              key={activity.id}
+              className="block"
+            >
+              <div className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+                <h2 className="text-xl font-bold mb-2 text-right">{activity.name}</h2>
+                <p className="text-gray-600 mb-2 text-right">{activity.description}</p>
+                <div className="text-right">
+                  <span className="text-sm text-gray-500">{activity.ageGroup}</span>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-2 justify-end">
+                  {activity.skills.map(skill => (
+                    <span 
+                      key={skill}
+                      className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
