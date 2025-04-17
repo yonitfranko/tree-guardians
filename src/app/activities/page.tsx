@@ -15,6 +15,7 @@ import { getActivities } from '@/lib/activityService';
 import { useActivities } from '@/hooks/useActivities';
 import { AGE_GROUPS, GRADE_TO_GROUP } from '@/constants/ageGroups';
 import { MAIN_SKILLS, ADDITIONAL_SKILLS } from '@/constants/skills';
+import { DOMAINS } from '@/lib/constants';
 
 const subjects = [
   {
@@ -253,6 +254,7 @@ export default function ActivitiesPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState('');
+  const [selectedDomain, setSelectedDomain] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [dynamicSkills, setDynamicSkills] = useState<string[]>([]);
 
@@ -294,21 +296,26 @@ export default function ActivitiesPage() {
         activity.description.toLowerCase().includes(searchText) ||
         activity.tags?.some(tag => tag.toLowerCase().includes(searchText));
 
-      // Age group filter - check if activity's age group matches the selected group
-      const activityGrade = activity.ageGroup || '';
+      // Age group filter
       const ageGroupMatch = !selectedAgeGroup || 
-        activityGrade === selectedAgeGroup ||
-        GRADE_TO_GROUP[activityGrade] === selectedAgeGroup;
+        activity.gradeLevel === selectedAgeGroup ||
+        (activity.gradeLevel === 'א\'-ג\'' && selectedAgeGroup === 'א-ג') ||
+        (activity.gradeLevel === 'ד\'-ו\'' && selectedAgeGroup === 'ד-ו') ||
+        (activity.gradeLevel === 'א\'-ו\'' && selectedAgeGroup === 'א-ו');
+
+      // Domain/Subject filter
+      const domainMatch = !selectedDomain || 
+        activity.subject === subjects.find(s => s.id === selectedDomain)?.name;
 
       // Skills filter
       const skillsMatch = selectedSkills.length === 0 || 
         selectedSkills.every(skill => activity.skills.includes(skill));
 
-      return textMatch && ageGroupMatch && skillsMatch;
+      return textMatch && ageGroupMatch && domainMatch && skillsMatch;
     });
 
     setFilteredActivities(filtered);
-  }, [activities, searchTerm, selectedAgeGroup, selectedSkills]);
+  }, [activities, searchTerm, selectedAgeGroup, selectedDomain, selectedSkills]);
 
   const handleSkillToggle = (skill: string) => {
     setSelectedSkills(prev => 
@@ -344,8 +351,24 @@ export default function ActivitiesPage() {
             className="w-full p-2 border rounded-lg text-right"
           >
             <option value="">כל קבוצות הגיל</option>
-            {AGE_GROUPS.map(group => (
-              <option key={group} value={group}>{group}</option>
+            <option value="א-ג">כיתות א-ג</option>
+            <option value="ד-ו">כיתות ד-ו</option>
+            <option value="א-ו">כל כיתות היסוד</option>
+          </select>
+        </div>
+
+        {/* Domain/Subject filter */}
+        <div>
+          <select
+            value={selectedDomain}
+            onChange={(e) => setSelectedDomain(e.target.value)}
+            className="w-full p-2 border rounded-lg text-right"
+          >
+            <option value="">כל תחומי הדעת</option>
+            {subjects.map(subject => (
+              <option key={subject.id} value={subject.id}>
+                {subject.icon} {subject.name}
+              </option>
             ))}
           </select>
         </div>
