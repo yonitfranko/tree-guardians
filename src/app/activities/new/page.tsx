@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SKILLS } from '@/lib/constants';
 import { addActivity } from '@/lib/activityService';
-import type { Activity, Resource } from '@/types';
+import type { Activity, Resource, Skill } from '@/types';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+const MAIN_CATEGORIES = ['חשיבה', 'למידה', 'אישי', 'חברתי', 'מיומנויות נוספות'] as const;
 
 export default function NewActivity() {
   const router = useRouter();
@@ -39,6 +43,9 @@ export default function NewActivity() {
     description: ''
   });
 
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+
   const trees = [
     { id: 'olive', name: 'עץ זית' },
     { id: 'pomegranate', name: 'עץ רימון' },
@@ -49,6 +56,31 @@ export default function NewActivity() {
     { id: 'oak', name: 'עץ אלון' },
     { id: 'sycamore', name: 'עץ השיקמה' }
   ];
+
+  useEffect(() => {
+    loadSkills();
+  }, []);
+
+  const loadSkills = async () => {
+    try {
+      const skillsSnapshot = await getDocs(collection(db, 'skills'));
+      const skillsData = skillsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Skill[];
+      setSkills(skillsData);
+    } catch (error) {
+      console.error('שגיאה בטעינת מיומנויות:', error);
+    }
+  };
+
+  const getSkillsByCategory = (category: string) => {
+    return skills.filter(skill => skill.category === category);
+  };
+
+  const getSkillsByMainCategory = (mainCategory: string) => {
+    return skills.filter(skill => skill.mainCategory === mainCategory);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,40 +256,53 @@ export default function NewActivity() {
               />
             </div>
 
-            <div>
-              <label className="block text-gray-700 mb-2">מיומנויות (עד 5)</label>
-              <div className="space-y-4">
-                {Object.entries(SKILLS).map(([category, { title, skills }]) => (
-                  <div key={category} className="border-b pb-4">
-                    <h3 className="font-bold mb-2">{title}</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {skills.map(skill => (
-                        <label key={skill} className="flex items-center gap-2">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">מיומנויות (עד 5)</h2>
+              
+              {MAIN_CATEGORIES.map(mainCategory => {
+                const categorySkills = skills.filter(skill => skill.mainCategory === mainCategory);
+                if (categorySkills.length === 0) return null;
+
+                return (
+                  <div key={mainCategory} className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <h3 className="text-lg font-bold text-gray-800">{mainCategory}</h3>
+                      <div className="flex-1 border-b border-gray-300 ml-4"></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
+                      {categorySkills.map(skill => (
+                        <label key={skill.id} className="flex items-center space-x-2 hover:bg-gray-50 p-2 rounded">
                           <input
                             type="checkbox"
-                            checked={activity.skills?.includes(skill)}
+                            checked={selectedSkills.includes(skill.id)}
                             onChange={(e) => {
-                              if (e.target.checked && (activity.skills?.length ?? 0) < 5) {
+                              if (e.target.checked) {
+                                if (selectedSkills.length < 5) {
+                                  setSelectedSkills([...selectedSkills, skill.id]);
+                                  setActivity({
+                                    ...activity,
+                                    skills: [...(activity.skills || []), skill.id]
+                                  });
+                                } else {
+                                  alert('ניתן לבחור עד 5 מיומנויות');
+                                }
+                              } else {
+                                setSelectedSkills(selectedSkills.filter(id => id !== skill.id));
                                 setActivity({
                                   ...activity,
-                                  skills: [...(activity.skills || []), skill]
-                                });
-                              } else if (!e.target.checked) {
-                                setActivity({
-                                  ...activity,
-                                  skills: activity.skills?.filter(s => s !== skill) || []
+                                  skills: (activity.skills || []).filter(id => id !== skill.id)
                                 });
                               }
                             }}
-                            disabled={!activity.skills?.includes(skill) && ((activity.skills?.length ?? 0) >= 5)}
+                            className="rounded"
                           />
-                          {skill}
+                          <span className="mr-2">{skill.name}</span>
                         </label>
                       ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
 
             <div>

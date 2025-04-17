@@ -101,8 +101,8 @@ export default function ActivityPage() {
                 הוסף תיעוד
               </Link>
             </div>
-          </div>
-        </div>
+      </div>
+      </div>
 
         {/* פרטי הפעילות */}
         <div className="bg-white rounded-lg shadow-lg p-6">
@@ -115,8 +115,8 @@ export default function ActivityPage() {
             <div>
               <p><span className="font-medium">שכבת גיל:</span> {activity.gradeLevel}</p>
               <p><span className="font-medium">משך הפעילות:</span> {activity.duration}</p>
-            </div>
-          </div>
+        </div>
+      </div>
         </div>
 
         {/* תיאור */}
@@ -150,8 +150,8 @@ export default function ActivityPage() {
               {activity.materials.map((material, index) => (
                 <li key={`material-${index}`}>{material}</li>
               ))}
-            </ul>
-          </div>
+          </ul>
+        </div>
         )}
 
         {/* שלבי הפעילות */}
@@ -174,8 +174,8 @@ export default function ActivityPage() {
               {activity.expectedOutcomes.map((outcome, index) => (
                 <li key={`outcome-${index}`}>{outcome}</li>
               ))}
-            </ul>
-          </div>
+          </ul>
+        </div>
         )}
 
         {/* משאבים */}
@@ -203,11 +203,11 @@ export default function ActivityPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+      </div>
             )}
 
             {activity.resources?.worksheets && activity.resources.worksheets.length > 0 && (
-              <div>
+        <div>
                 <h3 className="font-medium text-lg mb-3">📝 דפי עבודה</h3>
                 <ul className="space-y-3">
                   {activity.resources.worksheets.map((resource, index) => (
@@ -227,11 +227,11 @@ export default function ActivityPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+        </div>
             )}
 
             {activity.resources?.media && activity.resources.media.length > 0 && (
-              <div>
+        <div>
                 <h3 className="font-medium text-lg mb-3">🎥 סרטונים ומצגות</h3>
                 <ul className="space-y-3">
                   {activity.resources.media.map((resource, index) => (
@@ -251,11 +251,11 @@ export default function ActivityPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+        </div>
             )}
 
             {activity.resources?.relatedActivities && activity.resources.relatedActivities.length > 0 && (
-              <div>
+        <div>
                 <h3 className="font-medium text-lg mb-3">🔗 קישורים נוספים</h3>
                 <ul className="space-y-3">
                   {activity.resources.relatedActivities.map((resource, index) => (
@@ -275,11 +275,11 @@ export default function ActivityPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+        </div>
             )}
 
             {activity.resources?.externalLinks && activity.resources.externalLinks.length > 0 && (
-              <div>
+        <div>
                 <h3 className="font-medium text-lg mb-3">🌐 קישורים חיצוניים</h3>
                 <div className="space-y-2">
                   {activity.resources.externalLinks.map((link, index) => (
@@ -308,8 +308,8 @@ export default function ActivityPage() {
               !activity.resources?.externalLinks?.length) && (
               <p className="text-gray-500 text-center py-4">אין משאבים זמינים</p>
             )}
-          </div>
         </div>
+      </div>
 
         {/* תגיות */}
         {activity.tags?.length > 0 && (

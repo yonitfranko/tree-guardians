@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Activity, Resource } from '@/types';
+import { Activity, Resource, Skill } from '@/types';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { SKILLS, CUSTOM_SKILLS } from '@/lib/constants';
+
+const MAIN_CATEGORIES = ['חשיבה', 'למידה', 'אישי', 'חברתי', 'מיומנויות נוספות'] as const;
 
 export default function EditActivity() {
   const params = useParams();
@@ -50,6 +52,8 @@ export default function EditActivity() {
     url: '',
     description: ''
   });
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const trees = [
     { id: 'olive', name: 'עץ זית' },
@@ -102,6 +106,31 @@ export default function EditActivity() {
 
     fetchActivity();
   }, [params?.id, router]);
+
+  useEffect(() => {
+    loadSkills();
+  }, []);
+
+  const loadSkills = async () => {
+    try {
+      const skillsSnapshot = await getDocs(collection(db, 'skills'));
+      const skillsData = skillsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Skill[];
+      setSkills(skillsData);
+    } catch (error) {
+      console.error('שגיאה בטעינת מיומנויות:', error);
+    }
+  };
+
+  const getSkillsByCategory = (category: string) => {
+    return skills.filter(skill => skill.category === category);
+  };
+
+  const getSkillsBySubcategory = (subcategory: string) => {
+    return skills.filter(skill => skill.subcategory === subcategory);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -327,84 +356,53 @@ export default function EditActivity() {
               />
             </div>
 
-            <div>
-              <label className="block text-gray-700 mb-2">מיומנויות (עד 5)</label>
-              <div className="space-y-4">
-                {Object.entries(SKILLS).map(([category, { title, skills }]) => (
-                  <div key={category} className="border-b pb-4">
-                    <h3 className="font-bold mb-2">{title}</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {skills.map(skill => (
-                        <label key={skill} className="flex items-center gap-2">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">מיומנויות (עד 5)</h2>
+              
+              {MAIN_CATEGORIES.map(mainCategory => {
+                const categorySkills = skills.filter(skill => skill.mainCategory === mainCategory);
+                if (categorySkills.length === 0) return null;
+
+                return (
+                  <div key={mainCategory} className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <h3 className="text-lg font-bold text-gray-800">{mainCategory}</h3>
+                      <div className="flex-1 border-b border-gray-300 ml-4"></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
+                      {categorySkills.map(skill => (
+                        <label key={skill.id} className="flex items-center space-x-2 hover:bg-gray-50 p-2 rounded">
                           <input
                             type="checkbox"
-                            checked={activity.skills?.includes(skill)}
+                            checked={selectedSkills.includes(skill.id)}
                             onChange={(e) => {
-                              if (e.target.checked && (activity.skills?.length ?? 0) < 5) {
+                              if (e.target.checked) {
+                                if (selectedSkills.length < 5) {
+                                  setSelectedSkills([...selectedSkills, skill.id]);
+                                  setActivity({
+                                    ...activity,
+                                    skills: [...(activity.skills || []), skill.id]
+                                  });
+                                } else {
+                                  alert('ניתן לבחור עד 5 מיומנויות');
+                                }
+                              } else {
+                                setSelectedSkills(selectedSkills.filter(id => id !== skill.id));
                                 setActivity({
                                   ...activity,
-                                  skills: [...(activity.skills || []), skill]
-                                });
-                              } else if (!e.target.checked) {
-                                setActivity({
-                                  ...activity,
-                                  skills: activity.skills?.filter(s => s !== skill) || []
+                                  skills: (activity.skills || []).filter(id => id !== skill.id)
                                 });
                               }
                             }}
-                            disabled={!activity.skills?.includes(skill) && ((activity.skills?.length ?? 0) >= 5)}
+                            className="rounded"
                           />
-                          {skill}
+                          <span className="mr-2">{skill.name}</span>
                         </label>
                       ))}
                     </div>
-                    {category === 'OTHER' && (
-                      <div className="mt-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="הוסף מיומנות חדשה"
-                            className="flex-1 p-2 border rounded"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const input = e.target as HTMLInputElement;
-                                const newSkill = input.value.trim();
-                                if (newSkill && (activity.skills?.length ?? 0) < 5) {
-                                  setActivity({
-                                    ...activity,
-                                    skills: [...(activity.skills || []), newSkill]
-                                  });
-                                  CUSTOM_SKILLS.OTHER.skills.push(newSkill);
-                                  input.value = '';
-                                }
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                            onClick={(e) => {
-                              const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                              const newSkill = input.value.trim();
-                              if (newSkill && (activity.skills?.length ?? 0) < 5) {
-                                setActivity({
-                                  ...activity,
-                                  skills: [...(activity.skills || []), newSkill]
-                                });
-                                CUSTOM_SKILLS.OTHER.skills.push(newSkill);
-                                input.value = '';
-                              }
-                            }}
-                          >
-                            הוסף
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
 
             <div>
