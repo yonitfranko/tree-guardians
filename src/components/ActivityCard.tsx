@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { Activity } from '@/lib/constants';
-import { DEFAULT_DOMAINS } from '@/lib/constants';
+import { Activity } from '@/types';
+import { DOMAINS } from '@/lib/constants';
 import { getDomains } from '@/lib/domainService';
 
 interface ActivityCardProps {
@@ -9,7 +9,7 @@ interface ActivityCardProps {
 }
 
 export const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
-  const [domains, setDomains] = React.useState(DEFAULT_DOMAINS);
+  const [domains, setDomains] = React.useState(DOMAINS);
   const [domain, setDomain] = React.useState(domains.find(d => d.id === activity.domain));
 
   React.useEffect(() => {
@@ -17,7 +17,7 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
     const loadDomains = async () => {
       try {
         const loadedDomains = await getDomains();
-        setDomains([...DEFAULT_DOMAINS, ...loadedDomains]);
+        setDomains([...DOMAINS, ...loadedDomains]);
         setDomain(domains.find(d => d.id === activity.domain));
       } catch (error) {
         console.error('שגיאה בטעינת תחומי הדעת:', error);

@@ -25,8 +25,7 @@ export default function ActivityPage() {
       }
 
       try {
-        const activitiesRef = collection(db, 'activities');
-        const activityRef = doc(activitiesRef, params.id);
+        const activityRef = doc(db, 'activities', params.id as string);
         const activityDoc = await getDoc(activityRef);
         
         if (activityDoc.exists()) {
