@@ -1,5 +1,14 @@
 import { addDomainToFirestore, updateDomainInFirestore, deleteDomainFromFirestore } from './domainService';
 
+// Types
+export interface Domain {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+}
+
+// Core Skills
 export const CORE_SKILLS = {
   THINKING: {
     title: 'חשיבה',
@@ -44,36 +53,18 @@ export const CORE_SKILLS = {
   }
 };
 
+// Custom Skills
 export const CUSTOM_SKILLS = {
   OTHER: {
     title: 'מיומנויות נוספות',
-    skills: [] as string[] // יתמלא דינמית
+    skills: [] as string[]
   }
 };
 
-// מערך למיומנויות שעדיין לא משויכות לקטגוריה
+// Unassigned Skills
 export const UNASSIGNED_SKILLS: string[] = [];
 
-// פונקציה לבדיקה אם מיומנות היא מיומנות ליבה
-export function isCoreSkill(skill: string): boolean {
-  return Object.values(CORE_SKILLS).some(category => 
-    category.skills.includes(skill)
-  );
-}
-
-// פונקציה להוספת מיומנות מותאמת אישית
-export function addCustomSkill(skill: string) {
-  if (!isCoreSkill(skill) && !CUSTOM_SKILLS.OTHER.skills.includes(skill)) {
-    CUSTOM_SKILLS.OTHER.skills.push(skill);
-  }
-}
-
-// שומר על תאימות לאחור - משלב את כל המיומנויות
-export const SKILLS = {
-  ...CORE_SKILLS,
-  ...CUSTOM_SKILLS
-};
-
+// Grade Levels
 export const GRADE_LEVELS = [
   'א1', 'א2',
   'ב1', 'ב2',
@@ -83,14 +74,8 @@ export const GRADE_LEVELS = [
   'ו1', 'ו2'
 ];
 
-export interface Domain {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-}
-
-export const DEFAULT_DOMAINS: Domain[] = [
+// Domains
+export const DOMAINS: Domain[] = [
   {
     id: 'science',
     name: 'מדעים',
@@ -114,8 +99,45 @@ export const DEFAULT_DOMAINS: Domain[] = [
     name: 'אנגלית',
     description: 'לימודי אנגלית כשפה זרה',
     icon: '🇬🇧'
+  },
+  {
+    id: 'history',
+    name: 'היסטוריה',
+    description: 'לימודי היסטוריה',
+    icon: '🏛️'
+  },
+  {
+    id: 'geography',
+    name: 'גיאוגרפיה',
+    description: 'לימודי גיאוגרפיה',
+    icon: '🌍'
+  },
+  {
+    id: 'art',
+    name: 'אומנות',
+    description: 'לימודי אומנות',
+    icon: '🎨'
   }
 ];
+
+// Helper Functions
+export function isCoreSkill(skill: string): boolean {
+  return Object.values(CORE_SKILLS).some(category => 
+    category.skills.includes(skill)
+  );
+}
+
+export function addCustomSkill(skill: string) {
+  if (!isCoreSkill(skill) && !CUSTOM_SKILLS.OTHER.skills.includes(skill)) {
+    CUSTOM_SKILLS.OTHER.skills.push(skill);
+  }
+}
+
+// Combined Skills (for backward compatibility)
+export const SKILLS = {
+  ...CORE_SKILLS,
+  ...CUSTOM_SKILLS
+};
 
 export async function addDomain(domain: Omit<Domain, 'id'>): Promise<string> {
   return await addDomainToFirestore(domain);
