@@ -408,7 +408,7 @@ export default function ActivitiesPage() {
                 <p className="text-gray-600 mb-2 text-right">{activity.description}</p>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">
-                    {GRADE_TO_GROUP[activity.ageGroup] || activity.ageGroup}
+                    {activity.ageGroup ? GRADE_TO_GROUP[activity.ageGroup] || activity.ageGroup : ''}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2 justify-end">

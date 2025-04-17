@@ -1,55 +1,50 @@
+import React from 'react';
 import Link from 'next/link';
-import { Activity } from '@/types';
+import { Activity } from '@/lib/constants';
+import { DEFAULT_DOMAINS } from '@/lib/constants';
+import { getDomains } from '@/lib/domainService';
 
 interface ActivityCardProps {
   activity: Activity;
 }
 
-export function ActivityCard({ activity }: ActivityCardProps) {
+export const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
+  const [domains, setDomains] = React.useState(DEFAULT_DOMAINS);
+  const [domain, setDomain] = React.useState(domains.find(d => d.id === activity.domain));
+
+  React.useEffect(() => {
+    // טעינת תחומי הדעת מ-Firestore
+    const loadDomains = async () => {
+      try {
+        const loadedDomains = await getDomains();
+        setDomains([...DEFAULT_DOMAINS, ...loadedDomains]);
+        setDomain(domains.find(d => d.id === activity.domain));
+      } catch (error) {
+        console.error('שגיאה בטעינת תחומי הדעת:', error);
+      }
+    };
+
+    loadDomains();
+  }, [activity.domain]);
+
   return (
     <Link href={`/activities/${activity.id}`}>
-      <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-        <h3 className="text-xl font-bold text-green-800 mb-2">{activity.name}</h3>
-        
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-          <span className="px-2 py-1 bg-green-100 rounded">{activity.subject}</span>
-          <span>•</span>
-          <span>{activity.duration}</span>
-          <span>•</span>
-          <span>{activity.gradeLevel}</span>
+      <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+        <div className="flex items-center mb-2">
+          {domain && (
+            <span className="text-2xl mr-2">{domain.icon}</span>
+          )}
+          <h3 className="text-lg font-semibold">{activity.name}</h3>
         </div>
-        
-        <p className="text-gray-700 mb-4 line-clamp-2">{activity.description}</p>
-        
-        {activity.skills.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">מיומנויות:</h4>
-            <div className="flex flex-wrap gap-2">
-              {activity.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {activity.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {activity.tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+        <p className="text-gray-600 text-sm">{activity.description}</p>
+        <div className="mt-2 flex flex-wrap gap-1">
+          {activity.skills.map((skill, index) => (
+            <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+              {skill}
+            </span>
+          ))}
+        </div>
       </div>
     </Link>
   );
-} 
+}; 

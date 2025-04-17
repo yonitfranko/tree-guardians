@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Activity } from '@/types';
+import { DOMAINS } from '@/lib/constants';
 
 interface ActivityFormProps {
   initialData?: Partial<Activity>;
@@ -26,6 +27,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     preparation: '',
     participants: '',
     category: '',
+    domain: '',
     ageGroup: 'א-ג',
     favorite: false,
     image: '',
@@ -134,6 +136,24 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               value={formData.preparation || ''}
               onChange={handleChange}
             ></textarea>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">תחום דעת</label>
+            <select
+              name="domain"
+              required
+              className="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              value={formData.domain || ''}
+              onChange={handleChange}
+            >
+              <option value="">בחר תחום דעת</option>
+              {DOMAINS.map(domain => (
+                <option key={domain.id} value={domain.id}>
+                  {domain.icon} {domain.name} - {domain.description}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         

@@ -4,83 +4,44 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Activity } from '@/types';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import Link from 'next/link';
+import { DOMAINS } from '@/lib/constants';
+import { getActivities } from '@/lib/activityService';
 
 export default function ActivityPage() {
   const params = useParams();
   const router = useRouter();
-  const [activity, setActivity] = useState<Activity>({
-    id: '',
-    name: '',
-    subject: '',
-    treeType: '',
-    gradeLevel: '',
-    duration: '',
-    skills: [],
-    description: '',
-    materials: [],
-    steps: [],
-    expectedOutcomes: [],
-    tags: [],
-    resources: {
-      teacherResources: [],
-      worksheets: [],
-      media: [],
-      relatedActivities: [],
-      externalLinks: []
-    }
-  });
+  const [activity, setActivity] = useState<Activity | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchActivity() {
-      const activityId = params?.id;
-      if (!activityId || typeof activityId !== 'string') return;
+    const fetchActivity = async () => {
+      if (!params?.id) {
+        setError('מזהה פעילות לא תקין');
+        setLoading(false);
+        return;
+      }
 
       try {
-        const activityRef = doc(db, 'activities', activityId);
+        const activitiesRef = collection(db, 'activities');
+        const activityRef = doc(activitiesRef, params.id);
         const activityDoc = await getDoc(activityRef);
+        
         if (activityDoc.exists()) {
-          const data = activityDoc.data();
-          console.log('Raw data from Firestore:', data);
-          
-          // מיזוג המשאבים מכל המקורות האפשריים
-          const mergedResources = {
-            teacherResources: data.teacherResources || data.resources?.teacherResources || [],
-            worksheets: data.worksheets || data.resources?.worksheets || [],
-            media: data.media || data.resources?.media || [],
-            relatedActivities: data.relatedActivities || data.resources?.relatedActivities || [],
-            externalLinks: data.resources?.externalLinks || []
-          };
-          
-          console.log('Merged resources:', mergedResources);
-          
-          const processedActivity = {
-            id: activityDoc.id,
-            name: data.name || data.title || '',
-            treeType: data.treeType || '',
-            subject: data.subject || data.domain || '',
-            gradeLevel: data.gradeLevel || data.ageGroup || '',
-            duration: data.duration || '',
-            description: data.description || '',
-            skills: data.skills || [],
-            materials: data.materials || [],
-            steps: data.steps || [],
-            expectedOutcomes: data.expectedOutcomes || data.expectedResults || [],
-            tags: data.tags || [],
-            resources: mergedResources
-          } as Activity;
-          
-          console.log('Processed activity:', processedActivity);
-          setActivity(processedActivity);
+          const data = activityDoc.data() as Activity;
+          setActivity({ ...data, id: activityDoc.id });
+        } else {
+          setError('הפעילות לא נמצאה');
         }
-      } catch (error) {
-        console.error('Error fetching activity:', error);
+      } catch (err) {
+        setError('שגיאה בטעינת הפעילות');
+        console.error(err);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchActivity();
   }, [params?.id]);
@@ -108,9 +69,11 @@ export default function ActivityPage() {
     );
   }
 
-  if (!activity.id) {
-    return <div className="text-center py-8">הפעילות לא נמצאה</div>;
+  if (error || !activity) {
+    return <div className="text-center text-red-500 p-4">{error || 'הפעילות לא נמצאה'}</div>;
   }
+
+  const domain = DOMAINS.find(d => d.id === activity.domain);
 
   return (
     <div className="container mx-auto px-4 py-8">

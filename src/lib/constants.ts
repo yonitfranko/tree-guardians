@@ -1,3 +1,5 @@
+import { addDomainToFirestore, updateDomainInFirestore, deleteDomainFromFirestore } from './domainService';
+
 export const CORE_SKILLS = {
   THINKING: {
     title: 'חשיבה',
@@ -80,3 +82,49 @@ export const GRADE_LEVELS = [
   'ה1', 'ה2',
   'ו1', 'ו2'
 ];
+
+export interface Domain {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+export const DEFAULT_DOMAINS: Domain[] = [
+  {
+    id: 'science',
+    name: 'מדעים',
+    description: 'לימודי מדע וטכנולוגיה',
+    icon: '🔬'
+  },
+  {
+    id: 'math',
+    name: 'מתמטיקה',
+    description: 'לימודי חשבון ומתמטיקה',
+    icon: '🔢'
+  },
+  {
+    id: 'hebrew',
+    name: 'עברית',
+    description: 'לימודי שפה ואוריינות',
+    icon: '📚'
+  },
+  {
+    id: 'english',
+    name: 'אנגלית',
+    description: 'לימודי אנגלית כשפה זרה',
+    icon: '🇬🇧'
+  }
+];
+
+export async function addDomain(domain: Omit<Domain, 'id'>): Promise<string> {
+  return await addDomainToFirestore(domain);
+}
+
+export async function updateDomain(id: string, updates: Partial<Omit<Domain, 'id'>>): Promise<void> {
+  await updateDomainInFirestore(id, updates);
+}
+
+export async function removeDomain(id: string): Promise<void> {
+  await deleteDomainFromFirestore(id);
+}
