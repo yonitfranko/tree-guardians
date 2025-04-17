@@ -7,26 +7,26 @@ import { collection, getDocs } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAkmwVEbhnh7UlbzGlClNohQk9ArmOs4D8",
-  authDomain: "tree-guardians-ed3ac.firebaseapp.com",
-  projectId: "tree-guardians-ed3ac",
-  storageBucket: "tree-guardians-ed3ac.firebasestorage.app",
-  messagingSenderId: "113633081266",
-  appId: "1:113633081266:web:b5571575ccc240ce8b56ab",
-  measurementId: "G-ELLT4TXQJV"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// אתחול Firebase רק פעם אחת בסביבת דפדפן
-// (מניעת אתחול כפול בעת Hot Reload)
+// Initialize Firebase only once in browser environment
+// (prevent double initialization during Hot Reload)
 const firebaseApp = !getApps().length 
   ? initializeApp(firebaseConfig) 
   : getApps()[0];
 
-// ייצוא שירותים שנשתמש בהם
+// Export services we'll use
 export const db = getFirestore(firebaseApp);
 export const auth = getAuth(firebaseApp);
 
-// אתחול Analytics רק בצד הלקוח (לא בצד השרת)
+// Initialize Analytics only on client side
 if (typeof window !== 'undefined') {
   // Import dynamically to avoid server-side issues
   import('firebase/analytics').then(({ getAnalytics }) => {
@@ -36,13 +36,15 @@ if (typeof window !== 'undefined') {
   });
 }
 
-// הוספת בדיקת חיבור
-console.log('מנסה להתחבר לפיירבייס...');
-if (firebaseApp) {
-  console.log('החיבור לפיירבייס הצליח!');
-  console.log('מחובר לפרויקט:', firebaseConfig.projectId);
-} else {
-  console.error('נכשל החיבור לפיירבייס!');
+// Connection check
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Trying to connect to Firebase...');
+  if (firebaseApp) {
+    console.log('Firebase connection successful!');
+    console.log('Connected to project:', firebaseConfig.projectId);
+  } else {
+    console.error('Firebase connection failed!');
+  }
 }
 
 export default firebaseApp;
