@@ -428,10 +428,17 @@ export default function ActivitiesPage() {
             >
               <div className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
                 <h2 className="text-xl font-bold mb-2 text-right">{activity.name}</h2>
+                <div className="flex justify-end mb-2">
+                  {activity.subject && (
+                    <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {subjects.find(s => s.name === activity.subject)?.icon} {activity.subject}
+                    </span>
+                  )}
+                </div>
                 <p className="text-gray-600 mb-2 text-right">{activity.description}</p>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">
-                    {activity.ageGroup ? GRADE_TO_GROUP[activity.ageGroup] || activity.ageGroup : ''}
+                    {activity.gradeLevel}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2 justify-end">
