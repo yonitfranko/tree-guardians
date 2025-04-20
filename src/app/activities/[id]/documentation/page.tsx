@@ -1,4 +1,8 @@
+'use client';
+
 import { Activity } from '@/types';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface Documentation {
   id: string;
@@ -8,24 +12,28 @@ interface Documentation {
   images?: string[];
 }
 
-// שינוי הטיפוס של params כדי להתאים לדרישות של Next.js
-type PageProps = {
-  params: {
-    id: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+export default function Page() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const [documentations, setDocumentations] = useState<Documentation[]>([]);
 
-export default async function Page({ params, searchParams }: PageProps) {
-  const documentations: Documentation[] = [
-    {
-      id: '1',
-      title: 'תיעוד ראשון',
-      description: 'תיאור של התיעוד הראשון',
-      date: '2024-03-20',
-      images: ['/images/doc1.jpg', '/images/doc2.jpg']
-    }
-  ];
+  useEffect(() => {
+    // Simulate async data fetching
+    const loadDocumentations = async () => {
+      const data = [
+        {
+          id: '1',
+          title: 'תיעוד ראשון',
+          description: 'תיאור של התיעוד הראשון',
+          date: '2024-03-20',
+          images: ['/images/doc1.jpg', '/images/doc2.jpg']
+        }
+      ];
+      setDocumentations(data);
+    };
+
+    loadDocumentations();
+  }, []);
 
   return (
     <div className="p-4">

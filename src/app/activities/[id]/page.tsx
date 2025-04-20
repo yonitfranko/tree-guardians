@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Activity, Skill } from '@/types';
+import { Activity, Resource, Skill } from '@/types';
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
@@ -113,14 +113,13 @@ export default function ActivityPage() {
     console.log('Activity skills:', activity.skills);
     console.log('Available skills:', skills);
     
-    // First, let's get all the skills that belong to this activity
-    const activitySkills = skills.filter(skill => activity.skills.includes(skill.id));
-    console.log('Activity skills after mapping:', activitySkills);
+    // Filter skills that are both in the activity's skills array and match the category
+    const filteredSkills = skills.filter(skill => 
+      activity.skills.includes(skill.id) && 
+      skill.subcategory === category
+    );
     
-    // Then filter by category
-    const filteredSkills = activitySkills.filter(skill => skill.category === category);
     console.log('Filtered skills:', filteredSkills);
-    
     return filteredSkills;
   };
 
