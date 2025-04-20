@@ -13,21 +13,29 @@ export default function ActivityPage() {
   const params = useParams();
   const router = useRouter();
   const [activity, setActivity] = useState<Activity | null>(null);
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [skills, setSkills] = useState<Skill[]>([]);
 
   useEffect(() => {
     const loadSkills = async () => {
       try {
-        const skillsSnapshot = await getDocs(collection(db, 'skills'));
-        const skillsData = skillsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Skill[];
-        setSkills(skillsData);
-      } catch (error) {
-        console.error('שגיאה בטעינת מיומנויות:', error);
+        console.log('Loading skills...');
+        const skillsRef = collection(db, 'skills');
+        const snapshot = await getDocs(skillsRef);
+        const loadedSkills: Skill[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log('Loaded skill:', { id: doc.id, ...data });
+          return {
+            id: doc.id,
+            ...data
+          } as Skill;
+        });
+        console.log('All loaded skills:', loadedSkills);
+        setSkills(loadedSkills);
+      } catch (err) {
+        console.error('Error loading skills:', err);
+        setError('Failed to load skills');
       }
     };
 
@@ -43,18 +51,20 @@ export default function ActivityPage() {
       }
 
       try {
+        console.log('Fetching activity with ID:', params.id);
         const activityRef = doc(db, 'activities', params.id as string);
         const activityDoc = await getDoc(activityRef);
         
         if (activityDoc.exists()) {
           const data = activityDoc.data() as Activity;
+          console.log('Activity data:', data);
           setActivity({ ...data, id: activityDoc.id });
         } else {
           setError('הפעילות לא נמצאה');
         }
       } catch (err) {
+        console.error('Error fetching activity:', err);
         setError('שגיאה בטעינת הפעילות');
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -91,6 +101,29 @@ export default function ActivityPage() {
   }
 
   const domain = DOMAINS.find(d => d.id === activity.domain);
+
+  const MAIN_CATEGORIES = ['חשיבה', 'למידה', 'חברתי', 'אישי'];
+
+  const getSkillsByCategory = (category: string): Skill[] => {
+    if (!activity?.skills || !skills.length) {
+      console.log('No activity skills or skills loaded');
+      return [];
+    }
+    
+    console.log('Filtering skills for category:', category);
+    console.log('Activity skills:', activity.skills);
+    console.log('Available skills:', skills);
+    
+    // First, let's get all the skills that belong to this activity
+    const activitySkills = skills.filter(skill => activity.skills.includes(skill.id));
+    console.log('Activity skills after mapping:', activitySkills);
+    
+    // Then filter by category
+    const filteredSkills = activitySkills.filter(skill => skill.category === category);
+    console.log('Filtered skills:', filteredSkills);
+    
+    return filteredSkills;
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -147,19 +180,26 @@ export default function ActivityPage() {
         {activity.skills?.length > 0 && (
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">מיומנויות</h2>
-            <div className="flex flex-wrap gap-2">
-              {activity.skills.map((skillId) => {
-                const skill = skills.find(s => s.id === skillId);
-                if (!skill) return null;
+            <div className="flex flex-wrap gap-6">
+              {MAIN_CATEGORIES.map(category => {
+                const categorySkills = getSkillsByCategory(category);
+                
+                if (categorySkills.length === 0) return null;
                 
                 return (
-                  <span
-                    key={skillId}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded flex items-center gap-2"
-                  >
-                    <span className="font-medium">{skill.name}</span>
-                    <span className="text-sm text-blue-600">({skill.subcategory})</span>
-                  </span>
+                  <div key={category} className="flex-shrink-0">
+                    <h4 className="font-medium text-gray-700 mb-2">{category}</h4>
+                    <div className="flex flex-wrap gap-2 max-w-xs">
+                      {categorySkills.map(skill => (
+                        <span
+                          key={skill.id}
+                          className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full whitespace-nowrap"
+                        >
+                          {skill.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 );
               })}
             </div>

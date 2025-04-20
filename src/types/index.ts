@@ -89,4 +89,5 @@ export interface Skill {
   category: 'CORE' | 'CUSTOM' | 'OTHER';
   subcategory: string;
   createdAt?: Date;
+  updatedAt?: Date;
 }

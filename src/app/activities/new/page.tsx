@@ -3,17 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { SKILLS } from '@/lib/constants';
 import { addActivity } from '@/lib/activityService';
 import type { Activity, Resource, Skill } from '@/types';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-const SUBCATEGORIES = ['חשיבה', 'תקשורת', 'יצירתיות', 'שיתוף פעולה'];
+const MAIN_CATEGORIES = ['חשיבה', 'למידה', 'חברתי', 'אישי'];
 
 export default function NewActivity() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [newTag, setNewTag] = useState('');
   const [activity, setActivity] = useState<Partial<Activity>>({
     name: '',
@@ -45,6 +44,7 @@ export default function NewActivity() {
 
   const [skills, setSkills] = useState<Skill[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const trees = [
     { id: 'olive', name: 'עץ זית' },
@@ -58,24 +58,35 @@ export default function NewActivity() {
   ];
 
   useEffect(() => {
+    const loadSkills = async () => {
+      try {
+        console.log('Starting to load skills...');
+        const skillsCollection = collection(db, 'skills');
+        const skillsSnapshot = await getDocs(skillsCollection);
+        console.log('Skills snapshot:', skillsSnapshot.docs.length, 'documents found');
+        const skillsList = skillsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log('Skill data:', data);
+          return {
+            id: doc.id,
+            ...data
+          };
+        }) as Skill[];
+        console.log('Processed skills:', skillsList);
+        setSkills(skillsList);
+      } catch (err) {
+        console.error('Error loading skills:', err);
+        setError('Failed to load skills. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadSkills();
   }, []);
 
-  const loadSkills = async () => {
-    try {
-      const skillsSnapshot = await getDocs(collection(db, 'skills'));
-      const skillsData = skillsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Skill[];
-      setSkills(skillsData);
-    } catch (error) {
-      console.error('שגיאה בטעינת מיומנויות:', error);
-    }
-  };
-
-  const getSkillsBySubcategory = (subcategory: string) => {
-    return skills.filter(skill => skill.subcategory === subcategory);
+  const getSkillsByCategory = (category: string) => {
+    return skills.filter(skill => skill.category === category);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,26 +143,18 @@ export default function NewActivity() {
     }
   };
 
-  const handleAddSkill = () => {
-    if (activity.skills && activity.skills.length < 5) {
-      const skill = document.querySelector<HTMLInputElement>('input[name="skill"]')?.value;
-      if (skill) {
-        setActivity({
-          ...activity,
-          skills: [...activity.skills, skill]
-        });
-        if (document.querySelector<HTMLInputElement>('input[name="skill"]')) {
-          (document.querySelector<HTMLInputElement>('input[name="skill"]') as HTMLInputElement).value = '';
-        }
-      }
-    }
-  };
-
-  const handleRemoveSkill = (skillToRemove: string) => {
-    setActivity({
-      ...activity,
-      skills: activity.skills?.filter(skill => skill !== skillToRemove) || []
-    });
+  const handleSkillChange = (skillId: string) => {
+    const newSelected = selectedSkills.includes(skillId)
+      ? selectedSkills.filter(id => id !== skillId)
+      : selectedSkills.length < 5
+      ? [...selectedSkills, skillId]
+      : selectedSkills;
+    
+    setSelectedSkills(newSelected);
+    setActivity(prev => ({
+      ...prev,
+      skills: newSelected
+    }));
   };
 
   return (
@@ -252,53 +255,55 @@ export default function NewActivity() {
               />
             </div>
 
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">מיומנויות (עד 5)</h2>
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700">
+                מיומנויות (עד 5)
+              </label>
               
-              {SUBCATEGORIES.map(subcategory => {
-                const categorySkills = getSkillsBySubcategory(subcategory);
-                if (categorySkills.length === 0) return null;
-
-                return (
-                  <div key={subcategory} className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <h3 className="text-lg font-bold text-gray-800">{subcategory}</h3>
-                      <div className="flex-1 border-b border-gray-300 ml-4"></div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
-                      {categorySkills.map(skill => (
-                        <label key={skill.id} className="flex items-center space-x-2 hover:bg-gray-50 p-2 rounded">
-                          <input
-                            type="checkbox"
-                            checked={selectedSkills.includes(skill.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                if (selectedSkills.length < 5) {
-                                  setSelectedSkills([...selectedSkills, skill.id]);
-                                  setActivity({
-                                    ...activity,
-                                    skills: [...(activity.skills || []), skill.id]
-                                  });
-                                } else {
-                                  alert('ניתן לבחור עד 5 מיומנויות');
-                                }
-                              } else {
-                                setSelectedSkills(selectedSkills.filter(id => id !== skill.id));
-                                setActivity({
-                                  ...activity,
-                                  skills: (activity.skills || []).filter(id => id !== skill.id)
-                                });
-                              }
-                            }}
-                            className="rounded"
-                          />
-                          <span className="mr-2">{skill.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">טוען מיומנויות...</p>
+                </div>
+              ) : error ? (
+                <div className="text-red-600 py-4">{error}</div>
+              ) : (
+                <div className="space-y-4">
+                  {MAIN_CATEGORIES.map((category) => {
+                    const categorySkills = getSkillsByCategory(category);
+                    if (categorySkills.length === 0) return null;
+                    
+                    return (
+                      <div key={category} className="space-y-1">
+                        <h3 className="font-bold text-lg text-green-800">{category}</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {categorySkills.map((skill) => (
+                            <div key={skill.id} className="flex items-center py-1">
+                              <input
+                                type="checkbox"
+                                id={skill.id}
+                                checked={selectedSkills.includes(skill.id)}
+                                onChange={() => handleSkillChange(skill.id)}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                disabled={!selectedSkills.includes(skill.id) && selectedSkills.length >= 5}
+                              />
+                              <label htmlFor={skill.id} className="mr-2 text-sm text-gray-700">
+                                {skill.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {selectedSkills.length >= 5 && (
+                    <p className="text-amber-600 text-sm">
+                      הגעת למקסימום המיומנויות המותר (5)
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
