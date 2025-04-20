@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Activity } from '@/types';
+import { Activity, Skill } from '@/types';
 import { DOMAINS } from '@/lib/constants';
 import { getDomains } from '@/lib/domainService';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface ActivityCardProps {
   activity: Activity;
@@ -11,8 +13,9 @@ interface ActivityCardProps {
 export const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
   const [domains, setDomains] = React.useState(DOMAINS);
   const [domain, setDomain] = React.useState(domains.find(d => d.id === activity.domain));
+  const [skillNames, setSkillNames] = useState<{ [key: string]: string }>({});
 
-  React.useEffect(() => {
+  useEffect(() => {
     // טעינת תחומי הדעת מ-Firestore
     const loadDomains = async () => {
       try {
@@ -26,6 +29,26 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
 
     loadDomains();
   }, [activity.domain]);
+
+  useEffect(() => {
+    // טעינת שמות המיומנויות מ-Firestore
+    const loadSkills = async () => {
+      try {
+        const skillsRef = collection(db, 'skills');
+        const snapshot = await getDocs(skillsRef);
+        const skillsMap: { [key: string]: string } = {};
+        snapshot.docs.forEach(doc => {
+          const data = doc.data() as Skill;
+          skillsMap[doc.id] = data.name;
+        });
+        setSkillNames(skillsMap);
+      } catch (error) {
+        console.error('שגיאה בטעינת מיומנויות:', error);
+      }
+    };
+
+    loadSkills();
+  }, []);
 
   return (
     <Link href={`/activities/${activity.id}`}>
@@ -45,9 +68,9 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
             {activity.gradeLevel}
           </span>
           <div className="flex flex-wrap gap-1 justify-end">
-            {activity.skills.map((skill, index) => (
+            {activity.skills.map((skillId, index) => (
               <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                {skill}
+                {skillNames[skillId] || skillId}
               </span>
             ))}
           </div>

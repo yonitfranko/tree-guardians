@@ -57,6 +57,7 @@ export default function ActivityPage() {
         if (activityDoc.exists()) {
           const data = activityDoc.data() as Activity;
           console.log('Activity data:', data);
+          console.log('Activity skills:', data.skills);
           setActivity({ ...data, id: activityDoc.id });
         } else {
           setError('הפעילות לא נמצאה');
@@ -116,7 +117,7 @@ export default function ActivityPage() {
     // Filter skills that are both in the activity's skills array and match the category
     const filteredSkills = skills.filter(skill => 
       activity.skills.includes(skill.id) && 
-      skill.subcategory === category
+      skill.category === category
     );
     
     console.log('Filtered skills:', filteredSkills);
