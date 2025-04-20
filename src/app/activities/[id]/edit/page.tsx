@@ -148,7 +148,7 @@ export default function EditActivity() {
   const getSkillsByCategory = (category: string) => {
     console.log('Getting skills for category:', category);
     console.log('Current selected skills:', selectedSkills);
-    const filteredSkills = skills.filter(skill => skill.mainCategory === category);
+    const filteredSkills = skills.filter(skill => skill.category === category);
     console.log('Filtered skills for category:', filteredSkills);
     return filteredSkills;
   };
