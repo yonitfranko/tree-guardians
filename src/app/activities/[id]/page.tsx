@@ -7,7 +7,6 @@ import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
 import { DOMAINS } from '@/lib/constants';
-import { getActivities } from '@/lib/activityService';
 
 export default function ActivityPage() {
   const params = useParams();
@@ -100,7 +99,7 @@ export default function ActivityPage() {
     return <div className="text-center text-red-500 p-4">{error || 'הפעילות לא נמצאה'}</div>;
   }
 
-  const domain = DOMAINS.find(d => d.id === activity.domain);
+  const domain = DOMAINS.find((d: { id: string }) => d.id === activity.domain);
 
   const MAIN_CATEGORIES = ['חשיבה', 'למידה', 'חברתי', 'אישי'];
 
@@ -211,7 +210,7 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">ציוד נדרש</h2>
             <ul className="list-disc list-inside space-y-1">
-              {activity.materials.map((material, index) => (
+              {activity.materials.map((material: string, index: number) => (
                 <li key={`material-${index}`}>{material}</li>
               ))}
           </ul>
@@ -223,7 +222,7 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">שלבי הפעילות</h2>
             <ol className="list-decimal list-inside space-y-2">
-              {activity.steps.map((step, index) => (
+              {activity.steps.map((step: string, index: number) => (
                 <li key={`step-${index}`}>{step}</li>
               ))}
             </ol>
@@ -235,7 +234,7 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">תוצרים מצופים</h2>
             <ul className="list-disc list-inside space-y-1">
-              {activity.expectedOutcomes.map((outcome, index) => (
+              {activity.expectedOutcomes.map((outcome: string, index: number) => (
                 <li key={`outcome-${index}`}>{outcome}</li>
               ))}
           </ul>
@@ -250,7 +249,7 @@ export default function ActivityPage() {
               <div>
                 <h3 className="font-medium text-lg mb-3">📚 חומרי עזר למורה</h3>
                 <ul className="space-y-3">
-                  {activity.resources.teacherResources.map((resource, index) => (
+                  {activity.resources.teacherResources.map((resource: Resource, index: number) => (
                     <li key={index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
                       <a 
                         href={resource.url} 
@@ -274,7 +273,7 @@ export default function ActivityPage() {
         <div>
                 <h3 className="font-medium text-lg mb-3">📝 דפי עבודה</h3>
                 <ul className="space-y-3">
-                  {activity.resources.worksheets.map((resource, index) => (
+                  {activity.resources.worksheets.map((resource: Resource, index: number) => (
                     <li key={index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
                       <a 
                         href={resource.url} 
@@ -298,7 +297,7 @@ export default function ActivityPage() {
         <div>
                 <h3 className="font-medium text-lg mb-3">🎥 סרטונים ומצגות</h3>
                 <ul className="space-y-3">
-                  {activity.resources.media.map((resource, index) => (
+                  {activity.resources.media.map((resource: Resource, index: number) => (
                     <li key={index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
                       <a 
                         href={resource.url} 
@@ -322,7 +321,7 @@ export default function ActivityPage() {
         <div>
                 <h3 className="font-medium text-lg mb-3">🔗 קישורים נוספים</h3>
                 <ul className="space-y-3">
-                  {activity.resources.relatedActivities.map((resource, index) => (
+                  {activity.resources.relatedActivities.map((resource: Resource, index: number) => (
                     <li key={index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
                       <a 
                         href={resource.url} 
@@ -346,7 +345,7 @@ export default function ActivityPage() {
         <div>
                 <h3 className="font-medium text-lg mb-3">🌐 קישורים חיצוניים</h3>
                 <div className="space-y-2">
-                  {activity.resources.externalLinks.map((link, index) => (
+                  {activity.resources.externalLinks.map((link: Resource, index: number) => (
                     <div key={index} className="flex items-center space-x-2">
                       <a
                         href={link.url}
@@ -380,7 +379,7 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">תגיות</h2>
             <div className="flex flex-wrap gap-2">
-              {activity.tags.map((tag, index) => (
+              {activity.tags.map((tag: string, index: number) => (
                 <span
                   key={`tag-${index}`}
                   className="px-3 py-1 bg-gray-100 text-gray-800 rounded"
