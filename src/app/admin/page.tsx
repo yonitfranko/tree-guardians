@@ -19,8 +19,7 @@ export default function AdminPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [newSkill, setNewSkill] = useState({ 
     name: '', 
-    mainCategory: 'חשיבה' as typeof MAIN_CATEGORIES[number],
-    category: ''
+    category: 'חשיבה' as typeof MAIN_CATEGORIES[number]
   });
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
 
@@ -56,7 +55,6 @@ export default function AdminPage() {
           batch.push(
             addDoc(collection(db, 'skills'), {
               name: skillName,
-              mainCategory: mainCategory,
               category: mainCategory,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
@@ -76,15 +74,13 @@ export default function AdminPage() {
     try {
       await addDoc(collection(db, 'skills'), {
         name: newSkill.name,
-        mainCategory: newSkill.mainCategory,
-        category: newSkill.category || newSkill.mainCategory,
+        category: newSkill.category,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
       setNewSkill({ 
         name: '', 
-        mainCategory: 'חשיבה',
-        category: ''
+        category: 'חשיבה'
       });
       loadSkills();
     } catch (error) {
@@ -119,7 +115,7 @@ export default function AdminPage() {
   };
 
   const getSkillsByMainCategory = (mainCategory: string) => {
-    return skills.filter(skill => skill.mainCategory === mainCategory);
+    return skills.filter(skill => skill.category === mainCategory);
   };
 
   return (
@@ -140,11 +136,10 @@ export default function AdminPage() {
               required
             />
             <select
-              value={newSkill.mainCategory}
+              value={newSkill.category}
               onChange={(e) => setNewSkill({ 
                 ...newSkill, 
-                mainCategory: e.target.value as typeof MAIN_CATEGORIES[number],
-                category: e.target.value
+                category: e.target.value as typeof MAIN_CATEGORIES[number]
               })}
               className="p-2 border rounded"
             >
