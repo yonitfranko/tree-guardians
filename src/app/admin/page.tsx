@@ -97,7 +97,6 @@ export default function AdminPage() {
       const skillRef = doc(db, 'skills', skill.id);
       await updateDoc(skillRef, {
         name: skill.name,
-        mainCategory: skill.mainCategory,
         category: skill.category,
         updatedAt: new Date().toISOString()
       });
